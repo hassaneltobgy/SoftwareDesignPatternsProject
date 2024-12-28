@@ -45,7 +45,7 @@ class FacebookRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Facebook as a Volunteer";
+                return "Successfully registered with Facebook as a volunteer";
         }
            return null;
         }
@@ -82,7 +82,7 @@ class GoogleRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Google as a Volunteer";
+                return "Successfully registered with Google as a volunteer";
         }
            return null;
         }
@@ -118,7 +118,7 @@ class EmailRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Email as a Volunteer";
+                return "Successfully registered with Email as a volunteer";
         }
            return null;
         }

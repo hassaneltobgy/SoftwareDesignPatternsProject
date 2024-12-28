@@ -84,7 +84,7 @@ class LoginController
             return;
         }
 
-            $provider = $_POST['provider'];
+            $provider = $_POST['provider'] ?? 'email';
             if ($provider === 'google') {
                 $this->RegisterMethodContext->setProvider(new GoogleRegister());
                 $provider = 'Google';
@@ -98,7 +98,7 @@ class LoginController
             $provider = 'Email';
         }
 
-        $user = $this->RegisterMethodContext->register(
+        $result = $this->RegisterMethodContext->register(
             $FirstName,
             $LastName,
             $Email,
@@ -111,8 +111,8 @@ class LoginController
             $ACCOUNT_CREATION_DATE
         );
 
-        if ($user) {
-            $this->Message = "Successfully signed up with $provider";
+        if ($result) {
+            $this->Message = "$result";
         } else {
             $this->Message = "Failed to sign up with $provider";
         }

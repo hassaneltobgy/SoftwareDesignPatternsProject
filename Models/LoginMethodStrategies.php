@@ -10,9 +10,14 @@ class FacebookAuthenticator implements LoginMethodStrategy
     public function login(String $email, String $password)
     {
         $user = User::get_by_email($email);
+        echo "user type is $user->UserType";
         // get user type
         $userType = $user->UserType;
-
+        $isPasswordCorrect = password_verify($password, $user->PASSWORD_HASH);
+        echo "password is $password    ";
+        echo "password hash is $user->PASSWORD_HASH    ";
+        echo "password is $isPasswordCorrect    ";
+        echo "applying bycrypt encryption to the password password with hash ".password_hash($password, PASSWORD_BCRYPT);
         if ($user && password_verify($password, $user->PASSWORD_HASH)) {
             return "successfully logged in with Facebook as a $userType"; // Login successful
         }
