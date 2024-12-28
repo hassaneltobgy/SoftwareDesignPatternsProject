@@ -56,14 +56,16 @@ class Volunteer extends User {
         $PhoneNumber, 
         $DateOfBirth, 
         $USER_NAME, 
-        $PASSWORD_HASH, 
+        $password, 
         $LAST_LOGIN, 
         $ACCOUNT_CREATION_DATE , 
+        $privileges = [],
         $hours_contributed = null,
         $NumberOfEventsAttended= null,
         $skills = [],
         $volunteer_history = [],
         $badge_name = null,
+        
         ) 
         
         {
@@ -76,13 +78,15 @@ class Volunteer extends User {
         $PhoneNumber, 
         $DateOfBirth, 
         $USER_NAME, 
-        password_hash($PASSWORD_HASH, PASSWORD_BCRYPT), 
+        password_hash($password, PASSWORD_BCRYPT), 
         $LAST_LOGIN, 
         $ACCOUNT_CREATION_DATE,
-        "Volunteer"
+        "Volunteer",
+        $privileges
         );  
       
         if ($userCreated) {
+            echo "User created successfully.";
             $volunteer = new Volunteer();
     
             $query = "INSERT INTO " . $volunteer->table_name . " 
@@ -114,13 +118,15 @@ class Volunteer extends User {
         $volunteer->PhoneNumber = $PhoneNumber;
         $volunteer->DateOfBirth = $DateOfBirth;
         $volunteer->USER_NAME = $USER_NAME;
-        $volunteer->PASSWORD_HASH = $PASSWORD_HASH;
+        $volunteer->PASSWORD_HASH = password_hash($password, PASSWORD_BCRYPT);
         $volunteer->LAST_LOGIN = $LAST_LOGIN;
         $volunteer->ACCOUNT_CREATION_DATE = $ACCOUNT_CREATION_DATE;
         $volunteer->hours_contributed = $hours_contributed;
         $volunteer->NumberOfEventsAttended = $NumberOfEventsAttended;
         $volunteer->badge= $volunteer->get_badge_by_name($badge_name);
         
+
+        $password_hash = password_hash($password, PASSWORD_BCRYPT);
 
         $stmt->bind_param(
             "sssssssssiiii", 
@@ -130,7 +136,7 @@ class Volunteer extends User {
             $PhoneNumber, 
             $DateOfBirth, 
             $USER_NAME, 
-            password_hash($PASSWORD_HASH, PASSWORD_BCRYPT), 
+            $password_hash, 
             $LAST_LOGIN, 
             $ACCOUNT_CREATION_DATE, 
             $hours_contributed, 
@@ -166,18 +172,40 @@ class Volunteer extends User {
         }
     
         return null; 
-    }
+    }   
 
-    public function get_volunteer_by_id() {
+    public static function deletebyUserID($UserID) {
+        $conn = Database::getInstance()->getConnection();
+        $query = "DELETE FROM Volunteer WHERE UserID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $UserID);
+        if (!$stmt->execute()) {
+             echo "Error deleting volunteer: " . $stmt->error;
+            return false;
+        }
+        return true;
+    }
+    public function get_volunteer_by_id($VolunteerID) {
         $query = "SELECT * FROM " . $this->table_name . " WHERE VolunteerID = ?";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $this->VolunteerID);
+        $stmt->bind_param("i", $VolunteerID);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
+    
 
         if ($row) {
             $this->VolunteerID = $row['VolunteerID'];
+            $this->UserID = $row['UserID'];
+            $this->FirstName = $row['FirstName'];
+            $this->LastName = $row['LastName'];
+            $this->Email = $row['Email'];
+            $this->PhoneNumber = $row['PhoneNumber'];
+            $this->DateOfBirth = $row['DateOfBirth'];
+            $this->USER_NAME = $row['USER_NAME'];
+            $this->PASSWORD_HASH = $row['PASSWORD_HASH'];
+            $this->LAST_LOGIN = $row['LAST_LOGIN'];
+            $this->ACCOUNT_CREATION_DATE = $row['ACCOUNT_CREATION_DATE'];
             $this->hours_contributed = $row['hours_contributed'];
             $this->NumberOfEventsAttended = $row['NumberOfEventsAttended'];
             $this->skills = $this->get_skills();
@@ -188,8 +216,18 @@ class Volunteer extends User {
 
         return null;
     }
+    public function getVolunteerIdByUserId($UserID) {
+        $query = "SELECT VolunteerID FROM " . $this->table_name . " WHERE UserID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $UserID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['VolunteerID'];
+    }
 
     public function update(
+        $UserID= null,
         $VolunteerID = null,
         $FirstName = null,
         $LastName = null,
@@ -197,51 +235,81 @@ class Volunteer extends User {
         $PhoneNumber = null,
         $DateOfBirth = null,
         $USER_NAME = null,
-        $PASSWORD_HASH = null,
-        $hours_contributed = null,
-        $NumberOfEventsAttended = null,
+        $password = null,
+        $privileges = null,
+        $hours_contributed = 0,
+        $NumberOfEventsAttended = 0,
         $badge_name = null
     ) {
+
+        echo "updating volunteer!!";
+        
+        
         if ($VolunteerID != null) {
             $this->VolunteerID = $VolunteerID;
         }
+        else{
+            echo "user id is $UserID";
+            $this->VolunteerID = $this->getVolunteerIdByUserId($UserID);
+            // get volunteer data by id 
+            $volunteerData= $this->get_volunteer_by_id($this->VolunteerID);
+        }
+
         if ($hours_contributed != null) {
             $this->hours_contributed = $hours_contributed;
-            
         }
         if ($NumberOfEventsAttended != null) {
             $this->NumberOfEventsAttended = $NumberOfEventsAttended;
         }
         if ($FirstName != null) {
-            $this->FirstName = $FirstName;
-            
+            $this->FirstName = $FirstName;     
+        }
+        else {
+            $this->FirstName = $volunteerData->FirstName;
         }
         if ($LastName != null) {
             $this->LastName = $LastName;
                     }
+        else {
+            $this->LastName = $volunteerData->LastName;
+        }
         if ($Email != null) {
             $this->Email = $Email;
               }
+        else {
+            $this->Email = $volunteerData->Email;
+        }
+
         if ($PhoneNumber != null) {
             $this->PhoneNumber = $PhoneNumber;
-       
+        }
+        else {
+            $this->PhoneNumber = $volunteerData->PhoneNumber;
         }
         if ($DateOfBirth != null && $DateOfBirth != 'undefined') {
             $this->DateOfBirth = $DateOfBirth;
-        
+        }
+        else {
+            $this->DateOfBirth = $volunteerData->DateOfBirth;
         }
         if ($USER_NAME != null) {
             $this->USER_NAME = $USER_NAME;
-            
         }
-        if ($PASSWORD_HASH != null) {
-            $this->PASSWORD_HASH = $PASSWORD_HASH;
-       
+        else {
+            $this->USER_NAME = $volunteerData->USER_NAME;
+        }
+        if ($password != null) {
+            $this->PASSWORD_HASH = password_hash($password, PASSWORD_BCRYPT);
+        }
+        else {
+            $this->PASSWORD_HASH = $volunteerData->PASSWORD_HASH;
         }
         if ($badge_name != null) {
             $this->badge = $this->get_badge_by_name($badge_name);
-            
            
+        }
+        else {
+            $this->badge = $volunteerData->badge;
         }
     
         $query = "UPDATE " . $this->table_name . " 
@@ -259,6 +327,9 @@ class Volunteer extends User {
     
         $stmt = $this->conn->prepare($query);
         // query volunteer badge to get badge id
+        if ($badge_name == null) {
+            $badge_name = "Starter Badge";
+        }
         $badge_id = VolunteerBadge::getBadgeIdByName($badge_name);
 
         $stmt->bind_param(
@@ -275,7 +346,7 @@ class Volunteer extends User {
             $badge_id,
             $this->VolunteerID
         );
-    
+        echo "now updating user from volunteer";
         $status = $this->update_user(
             $this->UserID,
             $this->FirstName,
@@ -284,7 +355,9 @@ class Volunteer extends User {
             $this->PhoneNumber,
             $this->DateOfBirth,
             $this->USER_NAME,
-            $this->PASSWORD_HASH
+            $this->PASSWORD_HASH,
+            "volunteer",
+            $privileges
         );
         if (!$stmt->execute()) {
             // echo "Error updating volunteer: " . $stmt->error . "<br>";
@@ -314,7 +387,6 @@ class Volunteer extends User {
         if (parent::delete($this->UserID)) {
             return $stmt->execute();
         }
-
         
     }
 

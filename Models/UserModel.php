@@ -1,6 +1,7 @@
 <?php
 require_once 'Database.php';
 require_once 'UserTypeModel.php';
+require_once 'volunteerModel.php';
 class User {
     private $conn;
     private $table_name = "User";
@@ -67,10 +68,11 @@ class User {
             $PASSWORD_HASH, 
             $LAST_LOGIN, 
             $ACCOUNT_CREATION_DATE,
-            $UserType // Accept UserType as a name (e.g., 'Admin', 'Volunteer')
+            $UserType ,
+            $privileges = [],
         ) {
             
-        
+            
             $UserTypeID =User::getUserTypeIDByName($UserType);
         
             if ($UserTypeID === null) {
@@ -88,6 +90,9 @@ class User {
             $user_new->PASSWORD_HASH = $PASSWORD_HASH;
             $user_new->LAST_LOGIN = $LAST_LOGIN;
             $user_new->ACCOUNT_CREATION_DATE = $ACCOUNT_CREATION_DATE;
+            $user_new->UserType = $UserType;
+
+            
 
             $query = "INSERT INTO " . $user_new->table_name . " 
                       (FirstName, LastName, Email, PhoneNumber, DateOfBirth, USER_NAME, PASSWORD_HASH, LAST_LOGIN, ACCOUNT_CREATION_DATE, UserTypeID) 
@@ -96,23 +101,51 @@ class User {
             $conn = Database::getInstance()->getConnection();
             $stmt = $conn->prepare($query);
             if ($stmt === false) {
-                // echo "Prepare failed: " . $conn->error;
+                echo "Prepare failed: " . $conn->error;
                 return null;
             }
 
         
-            // Bind the parameters for insertion
             $stmt->bind_param("sssssssssi", $FirstName, $LastName, $Email, $PhoneNumber, $DateOfBirth, $USER_NAME, $PASSWORD_HASH, $LAST_LOGIN, $ACCOUNT_CREATION_DATE, $UserTypeID);
         
             // Execute the query and return the new user
             if ($stmt->execute()) {
+                echo "statement executed";
                 $user_new->UserID = $conn->insert_id;
+                if ($privileges === null) {
+                    return $user_new;
+                }
+                for ($i = 0; $i < count($privileges); $i++) {
+                    $privilege = $privileges[$i];
+                    $user_new->addprivilege($privilege);
+                }
                 return $user_new;
             } else {
-                // echo "Error: " . $stmt->error;
+                echo "Error: " . $stmt->error;
                 return null;
             }
         }
+    public static function get_all_users(){
+        $query = "SELECT * FROM User";
+        $conn = Database::getInstance()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $user = new self();
+            foreach ($row as $key => $value) {
+                if (property_exists($user, $key)) {
+                    $user->$key = $value;
+                }
+            }
+            $user->UserType = $user->getUserType();
+            $user->Privileges = $user->getPrivileges();
+            $user->Locations = $user->getLocations();
+            $users[] = $user;
+        }
+        return $users;
+    }
 
     public static function get_by_email($email) {
         $query = "SELECT * FROM User WHERE Email = ? LIMIT 1";
@@ -162,27 +195,27 @@ class User {
     }
 
     public function getUserType() {
-        // Query to get the UserTypeID based on the UserID
+        // Query to get the UserType name based on the UserTypeID of the user with the given UserID
         $query = "SELECT UserTypeID FROM User WHERE UserID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $this->UserID);
         $stmt->execute();
         $result = $stmt->get_result();
-        
-        // If a UserTypeID is found, fetch it and return the corresponding UserType object
+        // get usertype from usertype id from table usertype
         if ($row = $result->fetch_assoc()) {
-            $userTypeID = $row['UserTypeID'];
-    
-            // Create a new UserType object and set its properties
-            $userType = new UserType();
-            $userType->UserTypeID = $userTypeID;
-            $userType->read(); // This will populate the UserType object with its details
-    
-            return $userType;
+            $UserTypeID = $row['UserTypeID'];
+            $query = "SELECT UserType FROM UserType WHERE UserTypeID = ?";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("i", $UserTypeID);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                return $row['UserType'];
+            }
         }
-    
-        // If no UserTypeID is found, return null or handle as needed
         return null;
+
+
     }
     
 
@@ -223,16 +256,19 @@ class User {
         return $privileges;
     }
 
-    public function addprivilege($privilegeID) {
-        $query = "INSERT INTO User_Privileges (UserID, PrivilegeID) VALUES (?, ?)";
+    public function addprivilege($privilegeName) {
+        $PrivilegeID = Privilege::getPrivilegeIdByName($privilegeName);
+        echo "PrivilegeID: $PrivilegeID";
+        echo "UserID: $this->UserID";
+        $query = "INSERT INTO User_Privilege (User_ID,  User_PrivilegeID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("ii", $this->UserID, $privilegeID);
+        $stmt->bind_param("ii", $this->UserID, $PrivilegeID);
         
         return $stmt->execute();
     }
 
     public function removeprivilege($privilegeID) {
-        $query = "DELETE FROM User_Privileges WHERE UserID = ? AND PrivilegeID = ?";
+        $query = "DELETE FROM User_Privilege WHERE User_ID = ? AND  User_PrivilegeID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("ii", $this->UserID, $privilegeID);
 
@@ -280,6 +316,27 @@ class User {
 
         return $stmt->execute();
     }
+    public function update_privilege($privilegeNames) {
+    //    overwrite the priviliges for the user id 
+        $query = "DELETE FROM User_Privilege WHERE User_ID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $this->UserID);
+        $stmt->execute();
+        // check if privilege names is not null 
+        if ($privilegeNames === null) {
+            return;
+        }
+        if (!is_array($privilegeNames)) {
+            $privilegeNames = [$privilegeNames];
+        }
+        if (count($privilegeNames) === 0) {
+            return;
+        }
+        for ($i = 0; $i < count($privilegeNames); $i++) {
+            Privilege::getPrivilegeIdByName($privilegeNames[$i]);
+            $this->addprivilege($privilegeNames[$i]);
+        }
+    }
 
     public function update_user(
         $UserID,
@@ -290,36 +347,86 @@ class User {
         $DateOfBirth,
         $USER_NAME,
         $PASSWORD_HASH,
+        $userType = null,
+        $privileges = [],   
+        $locations =[]
     ) {
-        error_log("Updating user with ID: $UserID");
+        echo("Updating user with ID: $UserID");
+        echo ("UserType: $userType");
 
         $query = "UPDATE " . $this->table_name . " 
                   SET FirstName = ?, LastName = ?, Email = ?, PhoneNumber = ?, DateOfBirth = ?, 
-                      USER_NAME = ?, PASSWORD_HASH = ? 
+                      USER_NAME = ?, PASSWORD_HASH = ?, UserTypeID = ? 
                   WHERE UserID = ?";
         if ($this->conn === null) {
             $this->conn = Database::getInstance()->getConnection();
         }
+
+        $this->update_privilege($privileges);
+        $this->FirstName = $FirstName;
+        $this->LastName = $LastName;
+        $this->Email = $Email;
+        $this->PhoneNumber = $PhoneNumber;
+        $this->DateOfBirth = $DateOfBirth;
+        $this->USER_NAME = $USER_NAME;
+        $this->PASSWORD_HASH = password_hash($PASSWORD_HASH, PASSWORD_BCRYPT);
+        $this->UserType = $userType;
+        $UserTypeID = User::getUserTypeIDByName($userType);
+        
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("sssssssi", $FirstName, $LastName, $Email, $PhoneNumber, $DateOfBirth, $USER_NAME, $PASSWORD_HASH, $UserID);
+        $stmt->bind_param("sssssssii", $FirstName, $LastName, $Email, $PhoneNumber, $DateOfBirth, $USER_NAME,$this->PASSWORD_HASH , $UserTypeID, $UserID);
 
         if ($stmt->execute()) {
             // echo "User updated successfully.";
-            return true;
+            return $this;
         }
         else {
             // echo "Error: " . $stmt->error;
-            return false;
+            return null;
         }
     }
 
     public function delete() {
+
+        $userType = $this->getUserType();
+        if ($userType === "Admin") {
+            echo "Cannot delete an Admin user.";
+            return false;
+        }
+        else if ($userType === "volunteer") {
+            Volunteer::deletebyUserID($this->UserID);
+        }
+        else {
+            echo "cannot delete an organization";
+        }
+        $query = "DELETE FROM User_Privilege WHERE User_ID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $this->UserID);
+        $stmt->execute();
+        // delete from user_address
+        $query = "DELETE FROM User_Address WHERE UserID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $this->UserID);
+        $stmt->execute();
+        // delete from user_notificationtype
+        $query = "DELETE FROM User_NotificationType WHERE UserID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $this->UserID);
+        $stmt->execute();
         $query = "DELETE FROM " . $this->table_name . " WHERE UserID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $this->UserID);
-
-        return $stmt->execute();
+        
+        if ( $stmt->execute()){
+            // delete from user_privilege
+            
+            
+            return true;
+        } else {
+            // echo the error to know what went wrong
+            echo "Error: " . $stmt->error;
+        }
     }
 
     public function listUsers() {

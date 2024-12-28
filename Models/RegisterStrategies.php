@@ -1,4 +1,5 @@
 <?php
+require_once '../Models/VolunteerModel.php';
 interface RegisterMethodStrategy
 {
     public function register(
@@ -26,7 +27,7 @@ class FacebookRegister implements RegisterMethodStrategy
         String $PhoneNumber,
         String $DateOfBirth,
         String $USER_NAME,
-        String $PASSWORD_HASH,
+        String $password,
         String $userType,
         String $LAST_LOGIN,
         String $ACCOUNT_CREATION_DATE
@@ -34,16 +35,17 @@ class FacebookRegister implements RegisterMethodStrategy
     {
         if ($userType === 'Volunteer') {
             
-            return Volunteer::create_Volunteer(
+            $volunteer = Volunteer::create_Volunteer(
                 $FirstName, 
                 $LastName, 
                 $Email, 
                 $PhoneNumber, 
                 $DateOfBirth, 
                 $USER_NAME, 
-                $PASSWORD_HASH, 
+                $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
+                return "Successfully registered with Facebook as a Volunteer";
         }
            return null;
         }
@@ -62,7 +64,7 @@ class GoogleRegister implements RegisterMethodStrategy
         String $PhoneNumber,
         String $DateOfBirth,
         String $USER_NAME,
-        String $PASSWORD_HASH,
+        String $password,
         String $userType,
         String $LAST_LOGIN,
         String $ACCOUNT_CREATION_DATE
@@ -70,16 +72,17 @@ class GoogleRegister implements RegisterMethodStrategy
     {
         if ($userType === 'Volunteer') {
             
-            return Volunteer::create_Volunteer(
+            $volunteer = Volunteer::create_Volunteer(
                 $FirstName, 
                 $LastName, 
                 $Email, 
                 $PhoneNumber, 
                 $DateOfBirth, 
                 $USER_NAME, 
-                $PASSWORD_HASH, 
+                $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
+                return "Successfully registered with Google as a Volunteer";
         }
            return null;
         }
@@ -97,7 +100,7 @@ class EmailRegister implements RegisterMethodStrategy
         String $PhoneNumber,
         String $DateOfBirth,
         String $USER_NAME,
-        String $PASSWORD_HASH,
+        String $password,
         String $userType,
         String $LAST_LOGIN,
         String $ACCOUNT_CREATION_DATE
@@ -105,16 +108,17 @@ class EmailRegister implements RegisterMethodStrategy
     {
         if ($userType === 'Volunteer') {
             
-            return Volunteer::create_Volunteer(
+            $volunteer = Volunteer::create_Volunteer(
                 $FirstName, 
                 $LastName, 
                 $Email, 
                 $PhoneNumber, 
                 $DateOfBirth, 
                 $USER_NAME, 
-                $PASSWORD_HASH, 
+                $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
+                return "Successfully registered with Email as a Volunteer";
         }
            return null;
         }
@@ -141,7 +145,7 @@ class RegisterMethodContext
         String $PhoneNumber,
         String $DateOfBirth,
         String $USER_NAME,
-        String $PASSWORD_HASH,
+        String $password,
         String $userType,
         String $LAST_LOGIN,
         String $ACCOUNT_CREATION_DATE
@@ -154,7 +158,7 @@ class RegisterMethodContext
             $PhoneNumber,
             $DateOfBirth,
             $USER_NAME,
-            $PASSWORD_HASH,
+            $password,
             $userType,
             $LAST_LOGIN,
             $ACCOUNT_CREATION_DATE

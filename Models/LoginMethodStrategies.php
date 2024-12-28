@@ -10,9 +10,11 @@ class FacebookAuthenticator implements LoginMethodStrategy
     public function login(String $email, String $password)
     {
         $user = User::get_by_email($email);
+        // get user type
+        $userType = $user->UserType;
 
         if ($user && password_verify($password, $user->PASSWORD_HASH)) {
-            return $user; // Login successful
+            return "successfully logged in with Facebook as a $userType"; // Login successful
         }
         
         return null; // Invalid credentials
@@ -25,11 +27,12 @@ class GoogleAuthenticator implements LoginMethodStrategy
     public function login(String $email, String $password)
     {
         // Fetch the stored hash from the database for the given email
-        $user = User::get_by_email($email); // You should have a method to fetch the user by email
+        $user = User::get_by_email($email); 
+        $userType = $user->UserType;
 
         // If the user exists, verify the password using password_verify
         if ($user && password_verify($password, $user->PASSWORD_HASH)) {
-            return $user; // Login successful
+            return  "successfully logged in with Google as a $userType"; // Login successful
         }
         
         return null; // Invalid credentials
@@ -43,11 +46,12 @@ class LoginMethodEmail implements LoginMethodStrategy
     public function login(String $email, String $password)
     {
         // Fetch the stored hash from the database for the given email
-        $user = User::get_by_email($email); // You should have a method to fetch the user by email
+        $user = User::get_by_email($email); 
+        $userType = $user->UserType;
 
         // If the user exists, verify the password using password_verify
         if ($user && password_verify($password, $user->PASSWORD_HASH)) {
-            return $user; // Login successful
+            return "successfully logged in with Email as a $userType"; // Login successful
         }
         
         return null; // Invalid credentials
@@ -61,7 +65,6 @@ class LoginMethodContext
 
     public function __construct(LoginMethodStrategy $strategy = null)
     {
-        // Initialize the strategy with LoginMethodEmail if none is provided
         $this->strategy = $strategy ?? new LoginMethodEmail();
     }
 
@@ -70,7 +73,7 @@ class LoginMethodContext
         $this->strategy = $strategy;
     }
 
-    public function login(String $email, String $password): User|null
+    public function login(String $email, String $password): ?String
     {
         return $this->strategy->login($email, $password);
     }

@@ -76,6 +76,31 @@ class Privilege
 
         return $privileges;
     }
+    public static function getPrivilegeNameByID($id) {
+        $query = "SELECT PrivilegeName FROM Privilege WHERE PrivilegeID = ?";
+        $stmt = Database::getInstance()->getConnection()->prepare($query);
+
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        return $row['PrivilegeName'];
+    }
+    public static function getPrivilegeIdByName($name) {
+        echo "privilege name: $name";
+        $query = "SELECT PrivilegeID FROM Privilege WHERE PrivilegeName = ?";
+        $stmt = Database::getInstance()->getConnection()->prepare($query);
+
+        $stmt->bind_param('s', $name);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        return $row['PrivilegeID'];
+    }
 
     
 }

@@ -1,5 +1,5 @@
 <?php
-
+require_once '../Models/PrivilegeModel.php';
 abstract class VolunteerBadge
 {
     public $privileges = []; 
