@@ -9,6 +9,8 @@ CREATE TABLE Admin (
     PASSWORD_HASH VARCHAR(100) NOT NULL,          -- Volunteer password hash
     LAST_LOGIN DATE,                              -- Volunteer last login date
     ACCOUNT_CREATION_DATE DATE,   
+    USERID INT,
+    FOREIGN KEY (USERID) REFERENCES USER(USERID)
 
    
 );
