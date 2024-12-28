@@ -4,11 +4,15 @@ CREATE TABLE Organization (
     OrganizationDescription VARCHAR(500) NOT NULL,
     OrganizationEmail VARCHAR(50) NOT NULL,
     OrganizationPhone VARCHAR(50) NOT NULL,
-    OrganizationAddressID INT,
-    OrganizationTypeID INT,
-    FOREIGN KEY (OrganizationTypeID) REFERENCES OrganizationType(OrganizationTypeID),
     OrganizationWebsite VARCHAR(50) NOT NULL,
-    FOREIGN KEY (OrganizationAddressID) REFERENCES Location(AddressID)
+    OrganizationUsername VARCHAR(50) NOT NULL,
+    OrganizationPASSWORD_HASH VARCHAR(50) NOT NULL,
+    LAST_LOGIN DATE,                              -- Volunteer last login date
+    ACCOUNT_CREATION_DATE DATE, 
+
+    OrganizationTypeID INT NOT NULL,
+    FOREIGN KEY (OrganizationTypeID) REFERENCES OrganizationType(OrganizationTypeID),
+
     UserID INT,
     FOREIGN KEY (UserID) REFERENCES User(UserID)
 );
