@@ -2,16 +2,14 @@
 
 require_once '../Models/LoginMethodStrategies.php';
 require_once '../Models/UserModel.php';
-require_once '../Models/VolunteerModel.php';
+require_once '../Models/UserTypeModel.php';
 require_once '../Models/RegisterStrategies.php';
-
 class LoginController
 {
     private LoginMethodContext $loginContext;
     private RegisterMethodContext $RegisterMethodContext;
 
     public string $Message = '';
-    private string $Error = '';
 
     public function __construct()
     {
@@ -35,7 +33,7 @@ class LoginController
                     $this->handleSignup();
                     break;
                 default:
-                    $this->renderError("Invalid action.");
+                    $this->Message = "Invalid action";
                     break;
             }
         }
@@ -45,7 +43,7 @@ class LoginController
     {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-            $provider = $_POST['provider'];
+        $provider = $_POST['provider'] ?? 'email';
             if ($provider === 'google') {
                 $this->loginContext->setProvider(new GoogleAuthenticator());
                 $provider = 'Google';
@@ -59,20 +57,17 @@ class LoginController
         }
 
         $result = $this->loginContext->login($email, $password);
-
         if ($result) {
-            $this->renderMessage("Login successful using $provider! Welcome, " . htmlspecialchars($result->FirstName) . ".");
-            header('Location: ../Views/VolunteerView.php');
-            exit();
-        
+            $this->Message = "$result";
         } else {
-            $this->renderError("Login failed. Please check your credentials.");
+            $this->Message = "Failed to log in with $result";
         }
+
+      
     }
 
     public function handleSignup()
     {
-        ECHO "SIGNUP IN CONTROLLER";  // Debugging output, can be removed later
         $FirstName = $_POST['FirstName'] ?? '';
         $LastName = $_POST['LastName'] ?? '';
         $Email = $_POST['Email'] ?? '';
@@ -85,7 +80,7 @@ class LoginController
         $UserType = $_POST['user_type'] ?? '';
 
         if (empty($FirstName) || empty($LastName) || empty($Email) || empty($PASSWORD_HASH)) {
-            $this->renderError("All fields are required.");
+            $this->Message = "Please fill in all required fields";
             return;
         }
 
@@ -117,57 +112,20 @@ class LoginController
         );
 
         if ($user) {
-            // $this->renderMessage("Signup successful using $provider. Welcome, $FirstName.");
-
-    $userType = $_POST['user_type']; 
-    if ($userType === 'Volunteer') {
-        header('Location: ../Views/VolunteerView.php');
-    } elseif ($userType === 'Admin') {
-        header('Location: AdminDashboard.php');
-    } else {
-        header('Location: ../Views/LoginView.php');
-    }
-    exit();
-
-        
+            $this->Message = "Successfully signed up with $provider";
         } else {
-            $this->renderError("Signup failed. Please try again.");
+            $this->Message = "Failed to sign up with $provider";
         }
+
+       
     }
 
-    public function renderMessage(string $message)
-{
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success', 'message' => $message]);
-    exit();
-}
-
-public function renderError(string $error)
-{
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'error', 'message' => $error]);
-    exit();
-}
 
 }
 
 $controller = new LoginController();
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
-    echo "action is $action";  
-    switch ($action) {
-        case 'login':
-            $controller->handleLogin();
-            break;
-
-        case 'signup':
-            $controller->handleSignup();
-            break;
-        default:
-            $controller->renderError("Invalid action.");
-            break;
-    }
-}
-
+$controller->handleRequest();
+echo "$controller->Message";
+require_once '../Views/LoginView.php';
 ?>
 
