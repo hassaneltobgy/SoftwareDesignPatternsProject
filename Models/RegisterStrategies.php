@@ -1,5 +1,7 @@
 <?php
 require_once '../Models/VolunteerModel.php';
+require_once '../Models/AdminModel.php';
+require_once '../Models/OrganizationModel.php';
 interface RegisterMethodStrategy
 {
     public function register(
@@ -47,10 +49,36 @@ class FacebookRegister implements RegisterMethodStrategy
                 $ACCOUNT_CREATION_DATE  );
                 return "Successfully registered with Facebook as a volunteer";
         }
-           return null;
+        else if ($userType === 'Organization') {
+            $organization = Organization::create_Organization(
+                $FirstName, 
+                $LastName, 
+                $Email, 
+                $PhoneNumber, 
+                $DateOfBirth, 
+                $USER_NAME, 
+                $password, 
+                $LAST_LOGIN, 
+                $ACCOUNT_CREATION_DATE );
+                return "Successfully registered with Facebook as an organization";
+
+        }
+        else if ($userType === 'Admin') {
+            $admin = Admin::create_admin(
+                $FirstName, 
+                $LastName, 
+                $Email, 
+                $PhoneNumber, 
+                $DateOfBirth, 
+                $USER_NAME, 
+                $password, 
+                $LAST_LOGIN, 
+                $ACCOUNT_CREATION_DATE );
+                return "Successfully registered with Facebook as an admin";
         }
        
     }
+}
 
    
 
@@ -82,8 +110,37 @@ class GoogleRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Google as a volunteer";
+                return "Successfully registered with Facebook as a volunteer";
         }
+        else if ($userType === 'Organization') {
+            $organization = Organization::create_Organization(
+                $FirstName, 
+                $LastName, 
+                $Email, 
+                $PhoneNumber, 
+                $DateOfBirth, 
+                $USER_NAME, 
+                $password, 
+                $LAST_LOGIN, 
+                $ACCOUNT_CREATION_DATE );
+                return "Successfully registered with Facebook as an organization";
+
+        }
+        else if ($userType === 'Admin') {
+            $admin = Admin::create_admin(
+                $FirstName, 
+                $LastName, 
+                $Email, 
+                $PhoneNumber, 
+                $DateOfBirth, 
+                $USER_NAME, 
+                $password, 
+                $LAST_LOGIN, 
+                $ACCOUNT_CREATION_DATE );
+                return "Successfully registered with Facebook as an admin";
+        }
+
+
            return null;
         }
        
@@ -118,7 +175,34 @@ class EmailRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Email as a volunteer";
+                return "Successfully registered with Facebook as a volunteer";
+        }
+        else if ($userType === 'Organization') {
+            $organization = Organization::create_Organization(
+                $FirstName, 
+                $LastName, 
+                $Email, 
+                $PhoneNumber, 
+                $DateOfBirth, 
+                $USER_NAME, 
+                $password, 
+                $LAST_LOGIN, 
+                $ACCOUNT_CREATION_DATE );
+                return "Successfully registered with Facebook as an organization";
+
+        }
+        else if ($userType === 'Admin') {
+            $admin = Admin::create_admin(
+                $FirstName, 
+                $LastName, 
+                $Email, 
+                $PhoneNumber, 
+                $DateOfBirth, 
+                $USER_NAME, 
+                $password, 
+                $LAST_LOGIN, 
+                $ACCOUNT_CREATION_DATE );
+                return "Successfully registered with Facebook as an admin";
         }
            return null;
         }

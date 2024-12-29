@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Volunteer Management</title>
-    <link rel="stylesheet" href="./Style/style_login.css">
+    <link rel="stylesheet" href="../Views/Style/style_login.css">
     <script>
         // Show specific form (login or signup)
         function showForm(formType) {
@@ -62,6 +62,8 @@
             </div>
 
             <button type="submit">Sign Up</button>
+            <button type = "submit" name="provider" value="google">Sign up with Google</button>
+            <button type = "submit" name="provider" value="facebook">Sign up with Facebook</button>
         </form>
     </div>
 

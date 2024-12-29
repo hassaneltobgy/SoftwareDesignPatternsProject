@@ -14,7 +14,7 @@ class Organization extends User {
     private $events = [];
     private $organization = [];
     private $conn;
-    private $table_name = "Orgaznization";
+    private $table_name = "Organization";
 
     public function __construct($id = null) {
         parent::__construct(); 
@@ -24,7 +24,7 @@ class Organization extends User {
             echo "Database connection error.";
             return;
         } else if (empty($id)) {   
-            echo "No ID for organization provided.";
+            echo "No ID for organization pOrganizationTypeNamerovided.";
             return;
         } else { 
             $sql = "SELECT * FROM $this->table_name WHERE OrganizationID = ?";

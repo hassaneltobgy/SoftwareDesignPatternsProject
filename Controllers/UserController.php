@@ -1,6 +1,8 @@
 <?php
 require_once '../Models/UserModel.php';  
-
+require_once '../Models/VolunteerModel.php';
+require_once '../Models/AdminModel.php';
+require_once '../Models/OrganizationModel.php';
 class UserController {
     private $UserModel;
 
@@ -25,10 +27,16 @@ class UserController {
             privileges: $data['privileges']);
             }
         else if ($data['UserType'] == 'admin') {
-            // do nothing for now
+            $admin = new Admin();   
+            $admin->update(UserID:$data['UserID'] ,FirstName: $data['FirstName'],LastName: $data['LastName'], Email: $data['Email'], PhoneNumber: $data['PhoneNumber'], DateOfBirth:$data['DateOfBirth'], USER_NAME: $data['USER_NAME'], password: $data['PASSWORD_HASH'],
+            privileges: $data['privileges']);
+
         }
         else if ($data['UserType'] == 'organization') {
-            // do nothing for now
+            $organization = new Organization();
+            $organization->update(UserID:$data['UserID'] ,FirstName: $data['FirstName'],LastName: $data['LastName'], Email: $data['Email'], PhoneNumber: $data['PhoneNumber'], DateOfBirth:$data['DateOfBirth'], USER_NAME: $data['USER_NAME'], password: $data['PASSWORD_HASH'],
+            privileges: $data['privileges']);
+
         }
     }
     public function add_privilege($data) {
@@ -47,10 +55,17 @@ class UserController {
             $data['privileges']);
             }
         else if ($data['UserType'] == 'admin') {
-            // do nothing for now
+            // set last login and account creation date to current date
+            $data['LAST_LOGIN'] = date('Y-m-d H:i:s');
+            $data['ACCOUNT_CREATION_DATE'] = date('Y-m-d H:i:s');
+            Admin::create_admin($data['FirstName'], $data['LastName'], $data['Email'], $data['PhoneNumber'], $data['DateOfBirth'], $data['USER_NAME'], $data['PASSWORD_HASH'], $data['LAST_LOGIN'], $data['ACCOUNT_CREATION_DATE'],
+            $data['privileges']);
         }
         else if ($data['UserType'] == 'organization') {
-            // do nothing for now
+            $data['LAST_LOGIN'] = date('Y-m-d H:i:s');
+            $data['ACCOUNT_CREATION_DATE'] = date('Y-m-d H:i:s');
+            Organization::create_Organization($data['FirstName'], $data['LastName'], $data['Email'], $data['PhoneNumber'], $data['DateOfBirth'], $data['USER_NAME'], $data['PASSWORD_HASH'], $data['LAST_LOGIN'], $data['ACCOUNT_CREATION_DATE'],
+            $data['privileges']);
         }
     }
 

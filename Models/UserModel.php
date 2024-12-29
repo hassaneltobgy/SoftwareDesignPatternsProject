@@ -73,7 +73,7 @@ class User {
         ) {
             
             
-            $UserTypeID =User::getUserTypeIDByName($UserType);
+            $UserTypeID =User::getUserTypeIDByName(strtolower($UserType));
         
             if ($UserTypeID === null) {
                 // echo "Error: UserType '$UserType' not found.";
@@ -220,6 +220,7 @@ class User {
     
 
     public static function getUserTypeIDByName($UserType) {
+        echo"now in function getUserTypeIDByName and UserType is $UserType";
         $conn = Database::getInstance()->getConnection();
         $query = "SELECT UserTypeID FROM UserType WHERE UserType = ?";
         $stmt = $conn->prepare($query);
@@ -318,6 +319,7 @@ class User {
     }
     public function update_privilege($privilegeNames) {
     //    overwrite the priviliges for the user id 
+    echo "now in update_privilege, updating privileges for user with ID: $this->UserID";
         $query = "DELETE FROM User_Privilege WHERE User_ID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $this->UserID);
@@ -361,7 +363,7 @@ class User {
         if ($this->conn === null) {
             $this->conn = Database::getInstance()->getConnection();
         }
-
+        $this->UserID = $UserID;
         $this->update_privilege($privileges);
         $this->FirstName = $FirstName;
         $this->LastName = $LastName;
@@ -390,15 +392,14 @@ class User {
     public function delete() {
 
         $userType = $this->getUserType();
-        if ($userType === "Admin") {
-            echo "Cannot delete an Admin user.";
-            return false;
+        if ($userType === "admin") {
+            Admin::deletebyUserID($this->UserID);
         }
         else if ($userType === "volunteer") {
             Volunteer::deletebyUserID($this->UserID);
         }
-        else {
-            echo "cannot delete an organization";
+        else if ($userType === "organization") {
+            Organization::deletebyUserID($this->UserID);
         }
         $query = "DELETE FROM User_Privilege WHERE User_ID = ?";
         $stmt = $this->conn->prepare($query);
