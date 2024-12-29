@@ -12,7 +12,7 @@ CREATE TABLE Organization (
     DateOfCreation DATE NOT NULL,
 
     OrganizationTypeID INT NOT NULL,
-    FOREIGN KEY (OrganizationTypeID) REFERENCES OrganizationType(OrganizationTypeID),
+    FOREIGN KEY (OrganizationTypeID) REFERENCES OrganizationType(OrganizationTypeID) ON DELETE SET NULL,
 
     UserID INT,
     FOREIGN KEY (UserID) REFERENCES User(UserID)

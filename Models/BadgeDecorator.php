@@ -50,8 +50,8 @@ abstract class VolunteerBadge
         // this gets privileges of a badge , because each badge has a list of privileges
         $query = "SELECT p.PrivilegeID, p.PrivilegeName, p.Description, p.AccessLevel 
                   FROM Privilege p
-                  INNER JOIN BadgePrivilege bp ON p.PrivilegeID = bp.PrivilegeID
-                  WHERE bp.BadgeID = ?";
+                  INNER JOIN VolunteerBadge_Privilege bp ON p.PrivilegeID = bp.PrivilegeID
+                  WHERE bp.VolunteerBadgeID = ?";
         $stmt = $this->conn->prepare($query);
 
         $stmt->bind_param('i', $this->badge_id);
@@ -71,7 +71,7 @@ abstract class VolunteerBadge
         return $privileges;
     }
     public function add_privilege($privilege) {
-        $query = "INSERT INTO BadgePrivilege (BadgeID, PrivilegeID) VALUES (?, ?)";
+        $query = "INSERT INTO VolunteerBadge_Privilege (VolunteerBadgeID, PrivilegeID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param('ii', $this->badge_id, $privilege->PrivilegeID);
     
@@ -85,7 +85,7 @@ abstract class VolunteerBadge
     
 
     public function remove_privilege($privilege) {
-            $query = "DELETE FROM BadgePrivilege WHERE BadgeID = ? AND PrivilegeID = ?";
+            $query = "DELETE FROM VolunteerBadge_Privilege WHERE VolunteerBadgeID = ? AND PrivilegeID = ?";
             $stmt = $this->conn->prepare($query);
 
             $stmt->bind_param('ii', $this->badge_id, $privilege->PrivilegeID);
@@ -97,8 +97,65 @@ public function modify_privilege_for_a_certain_badge($old_privilege, $new_privil
     $this->remove_privilege($old_privilege);
     return $this->add_privilege($new_privilege);
 }
-   
+
+   public function add_badge($score, $title) {
+    $query = "INSERT INTO VolunteerBadge ( score, title) VALUES (?, ?, ?)";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param('is', $score, $title);
+
+    if ($stmt->execute()) {
+        return true;
+    }
+    return false;
     
+}
+public function remove_badge() {
+    $query = "DELETE FROM VolunteerBadge WHERE badge_id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param('i', $this->badge_id);
+    return $stmt->execute();
+}
+public function update_badge($score, $title) {
+    $query = "UPDATE VolunteerBadge SET score = ?, title = ? WHERE badge_id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param('isi', $score, $title, $this->badge_id);
+    return $stmt->execute();
+}
+public function get_badge_by_id($badge_id) {
+    $query = "SELECT * FROM VolunteerBadge WHERE badge_id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param('i', $badge_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $badge = new VolunteerBadge($this->conn);
+        $badge->badge_id = $row['badge_id'];
+        $badge->score = $row['score'];
+        $badge->title = $row['title'];
+        return $badge;
+    } else {
+        return null;
+    }
+
+}
+
+public function get_all_badges() {
+    $query = "SELECT * FROM VolunteerBadge";
+    $result = $this->conn->query($query);
+    $badges = [];
+    while ($row = $result->fetch_assoc()) {
+        $badge = new VolunteerBadge($this->conn);
+        $badge->badge_id = $row['badge_id'];
+        $badge->score = $row['score'];
+        $badge->title = $row['title'];
+        $badges[] = $badge;
+    }
+    return $badges;
+}
+
+
+
 }
 
 // Abstract Badge Decorator
@@ -129,38 +186,7 @@ abstract class BadgeDecorator extends VolunteerBadge
         return array_merge($this->badge->get_privileges(), $this->privileges);
     }
 
-    // Update the badge record in the database with the new score and title
-    private function update_badge_in_db()
-{
-    // Get the new score and title from the decorator
-    $score = $this->calc_score();
-    $title = $this->get_title();
-
-    // First, check if the badge already exists
-    $query = "SELECT badge_id FROM $this->tableName WHERE badge_id = ?";
-    $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("i", $this->badge_id);
-    $stmt->execute();
-    $stmt->store_result();  // Store the result for checking the row count
-    $exists = $stmt->num_rows > 0;  // Check if any rows exist with this badge_id
-    $stmt->close();
-
-    if ($exists) {
-        // Badge exists, so update it
-        $update_query = "UPDATE $this->tableName SET score = ?, title = ? WHERE badge_id = ?";
-        $update_stmt = $this->conn->prepare($update_query);
-        $update_stmt->bind_param("isi", $score, $title, $this->badge_id);
-        $update_stmt->execute();
-        $update_stmt->close();
-    } else {
-        // Badge doesn't exist, so insert a new record
-        $insert_query = "INSERT INTO $this->tableName (badge_id, score, title) VALUES (?, ?, ?)";
-        $insert_stmt = $this->conn->prepare($insert_query);
-        $insert_stmt->bind_param("iis", $this->badge_id, $score, $title);
-        $insert_stmt->execute();
-        $insert_stmt->close();
-    }
-}
+    
 
 
 }

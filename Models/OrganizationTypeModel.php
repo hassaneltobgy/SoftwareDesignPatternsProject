@@ -1,31 +1,38 @@
 <?php
+require_once 'Database.php';
 class OrganizationType {
     public $OrganizationTypeID;
-    public $OrganizationType;
+    public $OrganizationTypeName;
     private $conn;
 
    
-    public function __construct($OrganizationTypeID)
+    public function __construct($OrganizationTypeID= null)
     {
         $this->OrganizationTypeID = $OrganizationTypeID;
         $this->conn = Database::getInstance()->getConnection();
-        // get organization type by ID
         $name = OrganizationType::get_organization_type_name_from_id($OrganizationTypeID);
         if ($name) {
-            $this->OrganizationType = $name;
+            $this->OrganizationTypeName = $name;
         }
     }
 
     // Method to create a new OrganizationType
-    public function create() {
+    public function create($organizationTypeName) {
         $query = "INSERT INTO OrganizationType (OrganizationTypeName) VALUES (?)";
         $stmt = $this->conn->prepare($query);
 
         // Bind parameters
-        $stmt->bind_param('s', $this->OrganizationType);
+        $stmt->bind_param('s', $organizationTypeName);
 
         // Execute query
-        return $stmt->execute();
+        if($stmt->execute())
+        {
+            return true;
+        }
+        else{
+            echo "Error: " . $stmt->error;
+        }
+
     }
 
     public function read() {
@@ -45,22 +52,25 @@ class OrganizationType {
         // Set properties if a row is returned
         if ($row) {
             $this->OrganizationTypeID = $row['OrganizationTypeID'];
-            $this->OrganizationType = $row['OrganizationTypeName'];
+            $this->OrganizationTypeName = $row['OrganizationTypeName'];
             return true;
         }
 
         return false;
     }
 
-    public function update() {
-        $query = "UPDATE OrganizationType SET OrganizationType = ? WHERE OrganizationTypeID = ?";
+    public function update($organizationTypeName) {
+        echo "now updating OrganizationType with id: $this->OrganizationTypeID";
+        $query = "UPDATE OrganizationType SET OrganizationTypeName = ? WHERE OrganizationTypeID = ?";
         $stmt = $this->conn->prepare($query);
 
         // Bind parameters
-        $stmt->bind_param('si', $this->OrganizationType, $this->OrganizationTypeID);
+        $stmt->bind_param('si', $organizationTypeName, $this->OrganizationTypeID);
 
-        // Execute query
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            return true;
+        }
+        echo "Error: " . $stmt->error;
     }
 
     public function delete() {
@@ -71,20 +81,28 @@ class OrganizationType {
         $stmt->bind_param('i', $this->OrganizationTypeID);
 
         // Execute query
-        return $stmt->execute();
+        if ($stmt->execute()) {
+
+            return true;
+        }
+        echo "Error: " . $stmt->error;
     }
 
-    public function getAllOrganizationTypes() {
+    public static function getAllOrganizationTypes() {
         $query = "SELECT OrganizationTypeID, OrganizationTypeName FROM OrganizationType";
-        $result = $this->conn->query($query);
+        $result = Database::getInstance()->getConnection()->query($query);
 
-        // Fetch all user types as an associative array
-        $OrganizationTypes = [];
+        // Fetch all user types as an associative array of organization type objects
+        $organizationTypes = [];
         while ($row = $result->fetch_assoc()) {
-            $OrganizationTypes[] = $row;
+            $organizationType = new OrganizationType();
+            $organizationType->OrganizationTypeID = $row['OrganizationTypeID'];
+            $organizationType->OrganizationTypeName = $row['OrganizationTypeName'];
+            $organizationTypes[] = $organizationType;
         }
 
-        return $OrganizationTypes;
+        return $organizationTypes;
+
     }
     public static function get_organization_type_id_from_name($name)
     {

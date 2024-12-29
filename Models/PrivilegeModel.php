@@ -1,4 +1,5 @@
 <?php
+require_once 'Database.php';
 class Privilege 
 {
     public $PrivilegeID;
@@ -7,18 +8,17 @@ class Privilege
     public $AccessLevel;
     private $conn;
 
-    public function __construct() {
+    public function __construct($id= null) {
         $this->conn = Database::getInstance()->getConnection();
+        $this->PrivilegeID = $id;
     }
 
-    public function create() {
+    public function create($privilegeName, $description, $accessLevel) {
         $query = "INSERT INTO Privilege (PrivilegeName, Description, AccessLevel) VALUES (?, ?, ?)";
         $stmt = $this->conn->prepare($query);
 
-        // Bind parameters
-        $stmt->bind_param('ssi', $this->PrivilegeName, $this->Description, $this->AccessLevel);
+        $stmt->bind_param('ssi', $privilegeName, $description, $accessLevel);
 
-        // Execute query
         return $stmt->execute();
     }
 
@@ -47,31 +47,42 @@ class Privilege
         return $row ? true : false;
     }
 
-    public function update() {
+    public function update($privilegeName, $description, $accessLevel) {
         $query = "UPDATE Privilege SET PrivilegeName = ?, Description = ?, AccessLevel = ? WHERE PrivilegeID = ?";
         $stmt = $this->conn->prepare($query);
 
-        $stmt->bind_param('ssii', $this->PrivilegeName, $this->Description, $this->AccessLevel, $this->PrivilegeID);
+        $stmt->bind_param('ssii', $privilegeName, $description, $accessLevel, $this->PrivilegeID);
 
         return $stmt->execute();
     }
 
     public function delete() {
+        echo "deleting privilege with id: $this->PrivilegeID  ";
         $query = "DELETE FROM Privilege WHERE PrivilegeID = ?";
         $stmt = $this->conn->prepare($query);
 
         $stmt->bind_param('i', $this->PrivilegeID);
 
-        return $stmt->execute();
+        if ($stmt->execute()){
+            return true;
+        } else {
+            return $stmt->error;
+        }
     }
 
-    public function getAllPrivileges() {
+    public static function getAllPrivileges() {
         $query = "SELECT PrivilegeID, PrivilegeName, Description, AccessLevel FROM Privilege";
-        $result = $this->conn->query($query);
+        $result = Database::getInstance()->getConnection()->query($query);
 
+        // return array of privilege objects
         $privileges = [];
         while ($row = $result->fetch_assoc()) {
-            $privileges[] = $row;
+            $privilege = new Privilege();
+            $privilege->PrivilegeID = $row['PrivilegeID'];
+            $privilege->PrivilegeName = $row['PrivilegeName'];
+            $privilege->Description = $row['Description'];
+            $privilege->AccessLevel = $row['AccessLevel'];
+            $privileges[] = $privilege;
         }
 
         return $privileges;

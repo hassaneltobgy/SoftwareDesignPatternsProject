@@ -1,10 +1,12 @@
 <?php
 require_once '../Controllers/userController.php';
+require_once '../Controllers/PrivilegeController.php';
 
 // Instantiate the controller
 $controller = new UserController();
 $users = $controller->getAllUsers();
-
+$controllerprivilleges = new PrivilegeController();
+$privileges = $controllerprivilleges->get_all_privileges();
 
 
 ?>
@@ -18,13 +20,35 @@ $users = $controller->getAllUsers();
     <link rel="stylesheet" href="./Style/style_control_panel.css">
 </head>
 <body>
+
+<!-- Sidebar -->
 <div id="mySidebar" class="sidebar">
         <span href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</span>
-        <a href="NotificationView.php">Notifications</a>
+        <a href="PrivilegesControlPanel.php">Privileges Control Panel</a>
+        <a href = "OrganizationTypeControlPanel.php">Organization Type Control Panel</a>
         <a href="LoginView.php" onclick="logout()">Logout</a>
     </div>
+    <span class="open-btn" onclick="openNav()">&#9776;</span> <!-- Hamburger icon to open sidebar -->
+   
     <script>
-
+ function openNav() {
+    // Move sidebar into view
+    document.getElementById("mySidebar").style.left = "0";
+    // Adjust the container to account for the sidebar
+    const container = document.querySelector('.container');
+    container.style.marginLeft = "250px";
+    container.style.width = "calc(100% - 250px)"; // Dynamically adjust width
+    container.style.transition = "margin-left 0.3s ease, width 0.3s ease"; // Smooth transition
+}
+function closeNav() {
+    // Hide the sidebar
+    document.getElementById("mySidebar").style.left = "-250px";
+    // Reset container position and width
+    const container = document.querySelector('.container');
+    container.style.marginLeft = "auto";
+    container.style.width = "80%"; // Reset to centered layout width
+    container.style.transition = "margin-left 0.3s ease, width 0.3s ease"; // Smooth transition
+}
 function logout() {
     window.location.href = 'LoginView.php'; // Redirect to login page
 }
@@ -85,21 +109,13 @@ function logout() {
             <h3>Privileges</h3>
 <div class="form-group">
     <label>Select Privileges</label>
-    <div>
-        <label><input type="checkbox" name="Privileges[]" value="Admin Access"> Full access to all system features</label>
-    </div>
-    <div>
-        <label><input type="checkbox" name="Privileges[]" value="Editor Access">  Can edit content but not manage system settings</label>
-    </div>
-    <div>
-        <label><input type="checkbox" name="Privileges[]" value="Viewer Access"> Can only view content without making changes</label>
-    </div>
-    <div>
-        <label><input type="checkbox" name="Privileges[]" value="Event Manager"> Can create and manage volunteer events</label>
-    </div>
-    <div>
-        <label><input type="checkbox" name="Privileges[]" value="Report Access"> Can view and generate reports</label>
-    </div>
+    <?php
+    for ($i = 0; $i < count($privileges); $i++) {
+        echo '<div>';
+        echo '<label><input type="checkbox" name="Privileges[]" value="' . $privileges[$i]->PrivilegeName . '"> ' . $privileges[$i]->Description . '</label>';
+        echo '</div>';
+    }
+    ?>
 </div>
             <button type="submit" class="button">Add user</button>
         </form>
@@ -111,8 +127,6 @@ function logout() {
         <h2>Edit user</h2>
 
         <form id="edituserForm" action = "AdminControlPanel.php" method="post">
-
-
 
         <input type="hidden" name="action" value="updateuser">
             <input type="hidden" id="edit" name="UserID">
@@ -170,21 +184,14 @@ function logout() {
 <!-- Privilege Selection (Edit User Modal) -->
 <div class="form-group">
     <label>Select Privileges</label>
-    <div>
-        <label><input type="checkbox" id="editPrivilegeCanViewReports" name="Privileges[]" value="Admin Access"> Full access to all system features</label>
-    </div>
-    <div>
-        <label><input type="checkbox" id="editPrivilegeCanEditProfiles" name="Privileges[]" value="Editor Access">  Can edit content but not manage system settings</label>
-    </div>
-    <div>
-        <label><input type="checkbox" id="editPrivilegeCanManageEvents" name="Privileges[]" value="Viewer Access"> Can only view content without making changes</label>
-    </div>
-    <div>
-        <label><input type="checkbox" id="editPrivilegeCanAccessDashboard" name="Privileges[]" value="Event Manager"> Can create and manage volunteer events</label>
-    </div>
-    <div>
-        <label><input type="checkbox" id="editPrivilegeCanAssignRoles" name="Privileges[]" value="Report Access"> Can view and generate reports</label>
-    </div>
+    <?php
+    foreach ($privileges as $privilege) {
+        echo '<div>';
+        echo '<label><input type="checkbox" name="Privileges[]" value="' . $privilege->PrivilegeName . '"> ' . $privilege->Description . '</label>';
+        echo '</div>';
+    }
+
+    ?>
 </div>
             
             
@@ -288,7 +295,6 @@ function logout() {
         console.error('Modal not found.');
     }
 }
-
 
 
 
