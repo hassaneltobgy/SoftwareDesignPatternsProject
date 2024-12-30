@@ -23,6 +23,7 @@ $privileges = $controller->get_all_privileges();
         <span href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</span>
         <a href="AdminControlPanel.php">Admin Control Panel</a>
         <a href = "OrganizationTypeControlPanel.php">Organization Type Control Panel</a>
+        <a href = "BadgeAssignmentPanel.php">Badge Assignment Panel</a>
         <a href="LoginView.php" onclick="logout()">Logout</a>
     </div>
     <span class="open-btn" onclick="openNav()">&#9776;</span> <!-- Hamburger icon to open sidebar -->

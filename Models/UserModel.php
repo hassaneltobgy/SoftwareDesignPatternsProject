@@ -2,6 +2,7 @@
 require_once 'Database.php';
 require_once 'UserTypeModel.php';
 require_once 'volunteerModel.php';
+require_once 'LocationModel.php';
 class User {
     private $conn;
     private $table_name = "User";
@@ -46,7 +47,7 @@ class User {
 
                 $this->UserType = $this->getUserType();
                 $this->Privileges = $this->getPrivileges();
-                $this->Locations = $this->getLocations();
+                $this->Locations = $this->getLocations($this->UserID);
                 $this->NotificationTypes = $this->get_notification_types();
             } else {
                 // Handle case where no user is found
@@ -141,7 +142,7 @@ class User {
             }
             $user->UserType = $user->getUserType();
             $user->Privileges = $user->getPrivileges();
-            $user->Locations = $user->getLocations();
+            $user->Locations = $user->getLocations($user->UserID);
             $users[] = $user;
         }
         return $users;
@@ -164,7 +165,7 @@ class User {
             }
             $user->UserType = $user->getUserType();
             $user->Privileges = $user->getPrivileges();
-            $user->Locations = $user->getLocations();
+            $user->Locations = $user->getLocations( $user->UserID);
             return $user;
         }
         return null;
@@ -188,7 +189,7 @@ class User {
             }
             $user->UserType = $user->getUserType();
             $user->Privileges = $user->getPrivileges();
-            $user->Locations = $user->getLocations();
+            $user->Locations = $user->getLocations( $user->UserID);
             return $user;
         }
         return null;
@@ -276,44 +277,85 @@ class User {
         return $stmt->execute();
     }
 
-    public function getLocations() {
+    public static function getLocationIds($UserId) {
         $query = "SELECT a.* FROM Location a
                   JOIN User_Address ua ON a.AddressID = ua.AddressID
                   WHERE ua.UserID = ?";
-        $stmt = $this->conn->prepare($query);
+
+        $conn = Database::getInstance()->getConnection();
+        if ($conn === null) {
+            echo "Connection is null";
+        }
+        $stmt = $conn->prepare($query);
         if ($stmt === false) {
-            // echo "Prepare failed: " . $this->conn->error;
+            echo "Prepare failed: " . $conn->error;
             return null;
         }
-        
-        
-        $stmt->bind_param("i", $this->UserID);
+        $stmt->bind_param("i", $UserId);
         if ($stmt === false) {
-            // echo "Prepare failed: " . $this->conn->error;
+            echo "Prepare failed: " . $conn->error;
             return null;
         }
         $stmt->execute();
         $result = $stmt->get_result();
-        
-        $locations = [];
+        // return location ids as an array
+        $locationIds = [];
         while ($row = $result->fetch_assoc()) {
-            $locations[] = $row;
+            $locationIds[] = $row['AddressID'];
         }
-        return $locations;
+        
+        return $locationIds;
     }
 
+    public function getLocations($useriD) {
+        $locationDictionary = [];
+    
+        $locationIds = $this->getLocationIds($useriD);
+    
+        for ($i = 0; $i < count($locationIds); $i++) {
+            $locationName = Location::getLocationNameById($locationIds[$i]);
+    
+            // Get the parent (city) of the area
+            $cityName = Location::getParentFromChild($locationName);
+    
+            // Get the parent (country) of the city
+            $countryName = Location::getParentFromChild($cityName);
+    
+            // Create an array for the current location (with Area, City, Country)
+            $location = [
+                "ID" => $locationIds[$i],
+                "Area" => $locationName,
+                "City" => $cityName,
+                "Country" => $countryName
+            ];
+    
+            // Append the location to the locationDictionary array
+            $locationDictionary[] = $location;
+        }
+    
+        return $locationDictionary;
+    }
+
+    
+    
+
+
+
     public function addLocation($AddressID) {
-        $query = "INSERT INTO User_Locations (UserID, AddressID) VALUES (?, ?)";
+        $query = "INSERT INTO User_Address (UserID, AddressID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("ii", $this->UserID, $AddressID);
         
         return $stmt->execute();
     }
     
-    public function removeLocation($AddressID) {
-        $query = "DELETE FROM User_Locations WHERE UserID = ? AND AddressID = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("ii", $this->UserID, $AddressID);
+    public static function removeLocation($AddressID, $userID) {
+        echo "now removing location";
+        $query = "DELETE FROM User_Address WHERE UserID = ? AND AddressID = ?";
+        $conn = Database::getInstance()->getConnection();
+        $stmt = $conn->prepare($query);
+
+        $stmt->bind_param("ii", $userID, $AddressID);
 
         return $stmt->execute();
     }
@@ -389,6 +431,81 @@ class User {
         }
     }
 
+    public  function updateLocation($userID, $country,$city,$area){
+        echo "updating location";
+        $locationCountryId= Location::getLocationID($country);
+        $locationCityId= Location::getLocationID($city);
+        $locationAreaId= Location::getLocationID($area);
+
+        // first check if the country id is not null 
+        if ($locationCountryId === null) {
+            $location = new Location($country, null);
+            $location->create();
+            $locationCountryId = $location->AddressID;
+        }
+      
+            // check if the city id is not null 
+            if ($locationCityId === null) {
+            $location = new Location($city, $locationCountryId);
+            $location->create();
+            $locationCityId = $location->AddressID;
+            }
+            // else {
+            //     $locationCityId = $location->AddressID;
+            // }
+         
+         if ($locationAreaId === null) 
+          { 
+                echo "area id is null";
+                    $location = new Location($area, $locationCityId);
+                    $location->create();
+                    $locationAreaId = $location->AddressID;
+                }
+
+            // else{
+            //         $locationAreaId = $location->AddressID;
+            // }
+            echo "locationAreaId is $locationAreaId";
+            
+        
+
+        // add an entry in user_address table or update it  first check if the entry exists by checking the user id and address id
+        $query = "SELECT * FROM User_Address WHERE UserID = ? AND AddressID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ii", $userID, $locationAreaId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+        echo "Location exists";
+            // update the entry
+            $query = "UPDATE User_Address SET AddressID = ? WHERE UserID = ?";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("ii", $locationAreaId, $userID);
+            $stmt->execute();
+            if ($stmt->execute()) {
+                echo "Location updated successfully.";
+                return true;
+            } else {
+                echo "Error: " . $stmt->error;
+                return false;
+            }
+        } else {
+        echo "Location does not exist";
+            // add the entry
+            $query = "INSERT INTO User_Address (UserID, AddressID) VALUES (?, ?)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("ii", $userID, $locationAreaId);
+            $stmt->execute();
+            if ($stmt->execute()) {
+                echo "Location added successfully.";
+                return true;
+            } else {
+                echo "Error: " . $stmt->error;
+                return false;
+            }
+        }
+
+    }
     public function delete() {
 
         $userType = $this->getUserType();
@@ -460,7 +577,7 @@ class User {
             }
             // $user->UserType = $user->getUserType();
             $user->Privileges = $user->getPrivileges();
-            $user->Locations = $user->getLocations();
+            $user->Locations = $user->getLocations($user->UserID);
             return $user;
         }
         return null;

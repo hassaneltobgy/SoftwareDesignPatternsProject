@@ -1,12 +1,16 @@
 <?php
-class Location extends Database
+require_once 'Database.php';
+class Location
 {
     public $AddressID;
     public $Name;
     public $ParentID;
+    private $conn;
 
-    public function __construct() {
+    public function __construct($Name = '', $ParentID = NULL) {
         $this->conn = Database::getInstance()->getConnection();
+        $this->Name = $Name;
+        $this->ParentID = $ParentID;
     }
 
     public function create() {
@@ -17,7 +21,13 @@ class Location extends Database
         $stmt->bind_param('si', $this->Name, $this->ParentID);
 
         // Execute query
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            $this->AddressID = $this->conn->insert_id;
+            return true;
+        }
+        else {
+            echo "Error: " . $stmt->error;
+        }
     }
 
     public function read() {
@@ -63,6 +73,140 @@ class Location extends Database
 
         // Execute query
         return $stmt->execute();
+    }
+
+    public function addCountry($Name)
+    {
+        $this->Name = $Name;
+        $this->ParentID = 0;
+        return $this->create();
+    }
+
+    public function addCity($Name, $ParentID)
+    {
+        $this->Name = $Name;
+        $this->ParentID = $ParentID;
+        return $this->create();
+    }
+    public function addArea($Name, $ParentID)
+    {
+        $this->Name = $Name;
+        $this->ParentID = $ParentID;
+        return $this->create();
+    }
+    
+
+    public function getAllCountries()
+    {
+        $query = "SELECT Name FROM Location WHERE ParentID = 0";
+        $result = $this->conn->query($query);
+
+        // Fetch all countries
+        $countries = [];
+        while ($row = $result->fetch_assoc()) {
+            $countries[] = $row['Name'];
+        }
+
+        return $countries;
+    }
+
+
+    public function getAllCities()
+    {
+        $query = "SELECT Name FROM Location WHERE ParentID != 0";
+        $result = $this->conn->query($query);
+
+        // Fetch all cities
+        // then query the parent id as an address id to check that its parent id is 0 because if so then it is a city
+        $cities = [];
+        while ($row = $result->fetch_assoc()) {
+            $query = "SELECT ParentID FROM Location WHERE Name = ?";
+            $stmt = $this->conn->prepare($query);
+
+            $stmt->bind_param('s', $row['Name']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+
+            if ($row['ParentID'] == 0) {
+                $cities[] = $row['Name'];
+            }
+        }
+    }
+
+    public function getAllAreas()
+    {
+        $query = "SELECT Name FROM Location WHERE ParentID != 0";
+        $result = $this->conn->query($query);
+
+        // Fetch all areas
+        // then query the parent id as an address id to check that its parent id is not 0 because if so then it is an area
+        $areas = [];
+        while ($row = $result->fetch_assoc()) {
+            $query = "SELECT ParentID FROM Location WHERE Name = ?";
+            $stmt = $this->conn->prepare($query);
+
+            $stmt->bind_param('s', $row['Name']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+
+            if ($row['ParentID'] != 0) {
+                $areas[] = $row['Name'];
+            }
+        }
+    }
+
+
+    public static function getLocationNameById($AddressID)
+    {
+        $query = "SELECT Name FROM Location WHERE AddressID = ?";
+        $stmt = Database::getInstance()->getConnection()->prepare($query);
+
+        $stmt->bind_param('i', $AddressID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        return $row['Name'];
+    }
+
+
+    public static function getParentFromChild($ChildName)
+    {
+        $query = "SELECT ParentID FROM Location WHERE Name = ?";
+        $conn = Database::getInstance()->getConnection();
+        $stmt = $conn->prepare($query);
+
+        $stmt->bind_param('s', $ChildName);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        // get city name
+        $query = "SELECT Name FROM Location WHERE AddressID = ?";
+        $stmt = $conn->prepare($query);
+
+        $stmt->bind_param('i', $row['ParentID']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['Name'];    
+    }
+
+
+    public static function getLocationID($Name)
+    {
+        $query = "SELECT AddressID FROM Location WHERE Name = ?";
+        $conn = Database::getInstance()->getConnection();
+        $stmt = $conn->prepare($query);
+
+        $stmt->bind_param('s', $Name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        return $row['AddressID']?? null;
     }
 
     public function getAllLocations() {

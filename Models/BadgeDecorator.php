@@ -10,7 +10,7 @@ abstract class VolunteerBadge
     public $badge_id;
     
 
-    public function __construct($badge_id)
+    public function __construct($badge_id= null)
     {
         $this->conn = (Database::getInstance())->getConnection();
         $this->badge_id = $badge_id;
@@ -84,7 +84,8 @@ abstract class VolunteerBadge
     }
     
 
-    public function remove_privilege($privilege) {
+    public function remove_privilege($privilege) 
+    {
             $query = "DELETE FROM VolunteerBadge_Privilege WHERE VolunteerBadgeID = ? AND PrivilegeID = ?";
             $stmt = $this->conn->prepare($query);
 
@@ -140,19 +141,21 @@ public function get_badge_by_id($badge_id) {
 
 }
 
-public function get_all_badges() {
+public static function get_all_badges() {
     $query = "SELECT * FROM VolunteerBadge";
-    $result = $this->conn->query($query);
+    
+    $conn = (Database::getInstance())->getConnection();
+    $result = $conn->query($query);
     $badges = [];
+    
     while ($row = $result->fetch_assoc()) {
-        $badge = new VolunteerBadge($this->conn);
-        $badge->badge_id = $row['badge_id'];
-        $badge->score = $row['score'];
-        $badge->title = $row['title'];
-        $badges[] = $badge;
+        // Directly use the badge_id as the key and the entire row as the value
+        $badges[$row['badge_id']] = $row;
     }
+    
     return $badges;
 }
+
 
 
 

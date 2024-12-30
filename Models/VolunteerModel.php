@@ -22,6 +22,7 @@ class Volunteer extends User {
         } else if (empty($id)) {
             return;
         } else {
+            echo "Now in the volunteer constructor  ";
             $sql = "SELECT * FROM $this->table_name WHERE VolunteerID = ?";
             $stmt = $this->conn->prepare($sql);
             $stmt->bind_param("i", $id);
@@ -40,6 +41,7 @@ class Volunteer extends User {
                 $this->skills = $this->get_skills();
                 $this->volunteer_history = $this->get_history();
                 $this->badge = $this->get_badge();
+                echo "BADGE TITLE IS " . $this->badge->get_title();
             } else {
                 echo "No volunteer found with ID: $id";
             }
@@ -174,6 +176,7 @@ class Volunteer extends User {
         return null; 
     }   
 
+
     public static function deletebyUserID($UserID) {
         $conn = Database::getInstance()->getConnection();
         $query = "DELETE FROM Volunteer WHERE UserID = ?";
@@ -185,37 +188,94 @@ class Volunteer extends User {
         }
         return true;
     }
-    public function get_volunteer_by_id($VolunteerID) {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE VolunteerID = ?";
-        $stmt = $this->conn->prepare($query);
+    public static function get_volunteer_by_id($VolunteerID) {
+        echo "getting volunteer by id $VolunteerID   ";
+        $table_name = "Volunteer";
+        $query = "SELECT * FROM $table_name WHERE VolunteerID = ?";
+        $stmt = Database::getInstance()->getConnection()->prepare($query);
         $stmt->bind_param("i", $VolunteerID);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
-    
+        $volunteer = new Volunteer();
+        $volunteer->VolunteerID = $row['VolunteerID'];
+        $volunteer->UserID = $row['UserID'];
+        $volunteer->FirstName = $row['FirstName'];
+        $volunteer->LastName = $row['LastName'];
+        $volunteer->Email = $row['Email'];
+        $volunteer->PhoneNumber = $row['PhoneNumber'];
+        $volunteer->DateOfBirth = $row['DateOfBirth'];
+        $volunteer->USER_NAME = $row['USER_NAME'];
+        $volunteer->PASSWORD_HASH = $row['PASSWORD_HASH'];
+        $volunteer->LAST_LOGIN = $row['LAST_LOGIN'];
+        $volunteer->ACCOUNT_CREATION_DATE = $row['ACCOUNT_CREATION_DATE'];
+        $volunteer->hours_contributed = $row['hours_contributed'];
+        $volunteer->NumberOfEventsAttended = $row['NumberOfEventsAttended'];
+        $volunteer->skills = $volunteer->get_skills();
+        $volunteer->volunteer_history = $volunteer->get_history();
+        $volunteer->badge = $volunteer->get_badge();
+        return $volunteer;
 
-        if ($row) {
-            $this->VolunteerID = $row['VolunteerID'];
-            $this->UserID = $row['UserID'];
-            $this->FirstName = $row['FirstName'];
-            $this->LastName = $row['LastName'];
-            $this->Email = $row['Email'];
-            $this->PhoneNumber = $row['PhoneNumber'];
-            $this->DateOfBirth = $row['DateOfBirth'];
-            $this->USER_NAME = $row['USER_NAME'];
-            $this->PASSWORD_HASH = $row['PASSWORD_HASH'];
-            $this->LAST_LOGIN = $row['LAST_LOGIN'];
-            $this->ACCOUNT_CREATION_DATE = $row['ACCOUNT_CREATION_DATE'];
-            $this->hours_contributed = $row['hours_contributed'];
-            $this->NumberOfEventsAttended = $row['NumberOfEventsAttended'];
-            $this->skills = $this->get_skills();
-            $this->volunteer_history = $this->get_history();
-            $this->badge = $this->get_badge();
-            return $this;
-        }
-
-        return null;
     }
+
+
+
+    public function getVolunteerID() {
+        return $this->VolunteerID;
+    }
+    public function getUserID() {
+        return $this->UserID;
+    }
+    public function get_hours_contributed() {
+        return $this->hours_contributed;
+    }
+    public function get_NumberOfEventsAttended() {
+        return $this->NumberOfEventsAttended;
+    }
+    public function get_volunteer_skills() {
+        return $this->skills;
+    }
+    public function get_volunteer_history() {
+        return $this->volunteer_history;
+    }
+    public function get_volunteer_badge() {
+        return $this->badge->get_title();
+    }
+    public function getFirstName() {
+        return $this->FirstName;
+    }
+    public function getLastName() {
+        return $this->LastName;
+    }
+    public function getEmail() {
+        return $this->Email;
+    }
+    public function getPhoneNumber() {
+        return $this->PhoneNumber;
+    }
+    public function getDateOfBirth() {
+        return $this->DateOfBirth;
+    }
+    public function getUSER_NAME() {
+        return $this->USER_NAME;
+    }
+    public function getPASSWORD_HASH() {
+        return $this->PASSWORD_HASH;
+    }
+    public function getLAST_LOGIN() {
+        return $this->LAST_LOGIN;
+    }
+    public function getACCOUNT_CREATION_DATE() {
+        return $this->ACCOUNT_CREATION_DATE;
+    }
+    public function getPrivileges() {
+        return parent::getPrivileges();
+    }
+
+
+
+
+
     public function getVolunteerIdByUserId($UserID) {
         $query = "SELECT VolunteerID FROM " . $this->table_name . " WHERE UserID = ?";
         $stmt = $this->conn->prepare($query);
@@ -239,11 +299,16 @@ class Volunteer extends User {
         $privileges = null,
         $hours_contributed = 0,
         $NumberOfEventsAttended = 0,
-        $badge_name = null
+        $badge_name = null,
+        $country = null,
+        $city = null,
+        $area = null
     ) {
 
-        echo "updating volunteer!!";
-        
+       
+        if ($UserID != null) {
+            $this->UserID = $UserID;
+        }
         
         if ($VolunteerID != null) {
             $this->VolunteerID = $VolunteerID;
@@ -251,66 +316,25 @@ class Volunteer extends User {
         else{
             echo "user id is $UserID";
             $this->VolunteerID = $this->getVolunteerIdByUserId($UserID);
-            // get volunteer data by id 
-            $volunteerData= $this->get_volunteer_by_id($this->VolunteerID);
+            
         }
+        $volunteerData= $this->get_volunteer_by_id($this->VolunteerID);
 
-        if ($hours_contributed != null) {
-            $this->hours_contributed = $hours_contributed;
-        }
-        if ($NumberOfEventsAttended != null) {
-            $this->NumberOfEventsAttended = $NumberOfEventsAttended;
-        }
-        if ($FirstName != null) {
-            $this->FirstName = $FirstName;     
-        }
-        else {
-            $this->FirstName = $volunteerData->FirstName;
-        }
-        if ($LastName != null) {
-            $this->LastName = $LastName;
-                    }
-        else {
-            $this->LastName = $volunteerData->LastName;
-        }
-        if ($Email != null) {
-            $this->Email = $Email;
-              }
-        else {
-            $this->Email = $volunteerData->Email;
-        }
-
-        if ($PhoneNumber != null) {
-            $this->PhoneNumber = $PhoneNumber;
-        }
-        else {
-            $this->PhoneNumber = $volunteerData->PhoneNumber;
-        }
+        $this->hours_contributed = $hours_contributed;
+        $this->NumberOfEventsAttended = $NumberOfEventsAttended;
+        $this->FirstName = $FirstName?? $volunteerData->FirstName;
+        $this->LastName = $LastName?? $volunteerData->LastName;
+        $this->Email = $Email?? $volunteerData->Email;
+        $this->PhoneNumber = $PhoneNumber?? $volunteerData->PhoneNumber;
         if ($DateOfBirth != null && $DateOfBirth != 'undefined') {
             $this->DateOfBirth = $DateOfBirth;
         }
         else {
             $this->DateOfBirth = $volunteerData->DateOfBirth;
         }
-        if ($USER_NAME != null) {
-            $this->USER_NAME = $USER_NAME;
-        }
-        else {
-            $this->USER_NAME = $volunteerData->USER_NAME;
-        }
-        if ($password != null) {
-            $this->PASSWORD_HASH = password_hash($password, PASSWORD_BCRYPT);
-        }
-        else {
-            $this->PASSWORD_HASH = $volunteerData->PASSWORD_HASH;
-        }
-        if ($badge_name != null) {
-            $this->badge = $this->get_badge_by_name($badge_name);
-           
-        }
-        else {
-            $this->badge = $volunteerData->badge;
-        }
+        $this->USER_NAME = $USER_NAME?? $volunteerData->USER_NAME;
+        $this->PASSWORD_HASH = $password !== null ? password_hash($password, PASSWORD_BCRYPT) : ($VolunteerID ? password_hash($password, PASSWORD_BCRYPT) :  $volunteerData->PASSWORD_HASH );
+        $this->badge = $badge_name != null ? $this->get_badge_by_name($badge_name) : ($VolunteerID ? $this->get_badge() : $volunteerData->badge);
     
         $query = "UPDATE " . $this->table_name . " 
                   SET FirstName = ?, 
@@ -346,7 +370,6 @@ class Volunteer extends User {
             $badge_id,
             $this->VolunteerID
         );
-        echo "now updating user from volunteer";
         $status = $this->update_user(
             $this->UserID,
             $this->FirstName,
@@ -365,8 +388,8 @@ class Volunteer extends User {
         }
     
         if ($stmt->execute() && $status) {
-            // echo "Volunteer and user updated successfully.";
-
+            if ($country != null && $city != null && $area != null)
+                {$this->updateLocation($this->UserID,$country, $city, $area); }
             return true;
         }
     
@@ -390,7 +413,7 @@ class Volunteer extends User {
         
     }
 
-    public static function SelectAllVolunteersInDB()
+    public static function getAllVolunteers()
     {
         $sql = "SELECT * FROM Volunteer ORDER BY VolunteerID";
         $conn = Database::getInstance()->getConnection();
@@ -403,6 +426,7 @@ class Volunteer extends User {
         }
         while ($row = mysqli_fetch_array($volunteerDataSet)) {
             $MyObj = new Volunteer($row["VolunteerID"]);
+        
             $Result[$i] = $MyObj;
             $i++;
         }
@@ -709,25 +733,28 @@ class Volunteer extends User {
         }
     }
     
+
+
+
     public function get_badge() {
         // Step 1: Get the badge ID associated with this volunteer
         $query = "SELECT VolunteerBadgeID FROM volunteer WHERE VolunteerID = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
-            echo "Error preparing statement: " . $this->conn->error;
+            echo "Error preparing statement: " . $stmt->error;
             return null;
         }
+        echo "volunteer id is $this->VolunteerID";
         $stmt->bind_param("i", $this->VolunteerID);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         $badge_id = $row['VolunteerBadgeID'] ?? null;
-    
         if (!$badge_id) {
+            echo "No badge assigned to this volunteer.";
             return null; // No badge assigned
         }
-            
-       
+       echo "badge id is $badge_id   ";
         $query = "SELECT title FROM VolunteerBadge WHERE badge_id = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
@@ -739,13 +766,16 @@ class Volunteer extends User {
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         $badge_title = $row['title'];
+        echo "badge title is $badge_title ";
         if (!$row) {
             return null; // Badge not found
         }
         $baseBadge = new StarterBadgeDecorator($badge_id);
-        
+        echo "now will switch";
         // Step 4: Apply decorators based on badge hierarchy
+        echo "switching.. badge title is $badge_title  ";
         switch ($badge_title) {
+            
             case 'Leader Badge':
                 return new LeaderBadgeDecorator(
                     new MasterBadgeDecorator(
@@ -767,40 +797,59 @@ class Volunteer extends User {
             case 'Advanced Badge':
                 return new AdvancedBadgeDecorator($baseBadge);
             case 'Starter Badge':
+                echo "returning base badge with title " . $baseBadge->get_title() . ";";
+
                 return $baseBadge;
             default:
                 return null; // No valid badge found
         }
     }
     
+
+
     
 
     public function Update_badge($badge_name) {
-        $query = "SELECT badge_id FROM VolunteerBadge WHERE badge_name = ?";
+        echo "updating badge \n";
+        echo "volunteer id is $this->VolunteerID \n";
+        echo "badge name is $badge_name \n";
+
+        $badgeId = $this->getBadgeIDfromName($badge_name);
+        $query = "UPDATE Volunteer SET VolunteerBadgeID = ? WHERE VolunteerID = ?";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("s", $badge_name);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $badge_id = $result->fetch_assoc()['badge_id'];
-
-        if (!$badge_id) {
-            $query = "INSERT INTO VolunteerBadge (badge_name) VALUES (?)";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("s", $badge_name);
-            $stmt->execute();
-            $badge_id = $this->conn->insert_id;
-        }
-
-        $query = "UPDATE " . $this->table_name . " SET badge_id = ? WHERE VolunteerID = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("ii", $badge_id, $this->VolunteerID);
-
+        $stmt->bind_param("ii", $badgeId, $this->VolunteerID);
         if ($stmt->execute()) {
-            $this->badge = $badge_name;
             return true;
         }
+        echo "Error updating badge: " . $stmt->error;
         return false;
     }
+
+      public function getBadgeIDfromName($badge_name) {
+        $conn = $this->conn;
+        
+        $query = "SELECT badge_id FROM VolunteerBadge WHERE title = ?";
+        $stmt = $conn->prepare($query);
+        
+        $stmt->bind_param('s', $badge_name);
+        
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                return $row['badge_id'];
+            } else {
+                // echo "Badge not found";
+                return null;
+            }
+        } else {
+            // echo "Error retrieving badge ID: " . $stmt->error;
+            return null;
+        }
+    }
+
+
     public function hasBadge() {
         // Checks if the volunteer has a badge assigned
         $query = "SELECT badge_id FROM " . $this->table_name . " WHERE VolunteerID = ? LIMIT 1";
