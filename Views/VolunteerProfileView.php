@@ -97,39 +97,36 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
         <!-- Emergency Contacts Section -->
         <div class="section">
     <h2>Emergency Contacts</h2>
-    <form id="emergencyContactForm">
-        <div class="form-row">
-            <div>
-                <label for="ContactName">Contact Name</label>
-                <input type="text" id="ContactName" name="ContactName" required>
-            </div>
-            <div>
-                <label for="ContactPhone">Contact Phone</label>
-                <input type="text" id="ContactPhone" name="ContactPhone" required>
-            </div>
+    <form id="emergencyContactForm" action="VolunteerProfileView.php" method="POST" 
+      onsubmit="console.log('Form submitted'); return true;">
+    <input type="hidden" name="action" value="addEmergencyContact">
+    <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
+    <div class="form-row">
+        <div>
+            <label for="ContactName">Contact Name</label>
+            <input type="text" id="ContactName" name="ContactName" required>
         </div>
-        <button type="submit">Add Emergency Contact</button>
-    </form>
+        <div>
+            <label for="ContactPhone">Contact Phone</label>
+            <input type="text" id="ContactPhone" name="ContactPhone" required>
+        </div>
+    </div>
+    <button type="submit">Add Emergency Contact</button>
+</form>
+
 
     <div id="contactList">
         <h3>Saved Contacts</h3>
         <div id="contactsContainer" class="contact-cards">
             <!-- Pre-populated dummy contacts -->
-            <div class="contact-card">
-                <h4>John Doe</h4>
-                <p>Phone: 123-456-7890</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
-            <div class="contact-card">
-                <h4>Jane Smith</h4>
-                <p>Phone: 987-654-3210</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
-            <div class="contact-card">
-                <h4>Michael Johnson</h4>
-                <p>Phone: 555-867-5309</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
+
+            <?php foreach ($volunteer->getEmergencyContacts() as $contact): ?>
+                <div class="contact-card">
+                    <h4><?= htmlspecialchars($contact->getName()); ?></h4>
+                    <p>Phone: <?= htmlspecialchars($contact->getPhoneNumber()); ?></p>
+                    <button onclick="deleteContact(<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>, <?= $volunteer->getVolunteerID(); ?>)">Remove</button>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>
@@ -251,6 +248,34 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
 </body>
 </html>
 <script>
+    function deleteContact(contactID, volunteerID) {
+        console.log('Deleting contact...');
+    if (confirm('Are you sure you want to delete this contact?')) {
+        // Prepare the data to send
+        const formData = new FormData();
+        formData.append('action', 'deleteContact');
+        formData.append('ContactID', contactID);
+        formData.append('VolunteerID', volunteerID);
+    
+        // Send the POST request using fetch
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  
+            window.location.reload();
+        })
+        .catch(error => {
+            // Handle error response
+            console.error('Error:', error);
+        });
+
+    }
+}
+
     function deleteLocation(locationID, userID) {
         console.log('Deleting location...');
     if (confirm('Are you sure you want to delete this location?')) {
@@ -278,32 +303,20 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
       });
     }
   }
-    document.getElementById('emergencyContactForm').addEventListener('submit', function (event) {
-        event.preventDefault(); // Prevent form submission
-        
-        const contactName = document.getElementById('ContactName').value;
-        const contactPhone = document.getElementById('ContactPhone').value;
+  document.getElementById('emergencyContactForm').addEventListener('submit', function (event) {
+    const contactName = document.getElementById('ContactName').value;
+    const contactPhone = document.getElementById('ContactPhone').value;
 
-        if (contactName && contactPhone) {
-            // Create a new contact card
-            const contactCard = document.createElement('div');
-            contactCard.classList.add('contact-card');
+    if (!contactName || !contactPhone) {
+        // Prevent submission if required fields are empty
+        alert('Please fill out all fields.');
+        event.preventDefault();
+    } else {
+        // Allow the form to submit normally
+        console.log('Form submitted with values:', { contactName, contactPhone });
+    }
+});
 
-            // Add contact details to the card
-            contactCard.innerHTML = `
-                <h4>${contactName}</h4>
-                <p>Phone: ${contactPhone}</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            `;
-
-            // Append the card to the container
-            document.getElementById('contactsContainer').appendChild(contactCard);
-
-            // Clear input fields
-            document.getElementById('ContactName').value = '';
-            document.getElementById('ContactPhone').value = '';
-        }
-    });
     document.getElementById('skillsForm').addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent form submission
 

@@ -52,6 +52,15 @@ class VolunteerController {
         $Volunteer = new Volunteer();
         $Volunteer->removeLocation($id, $userID);
     }
+
+    public function addEmergencyContact($Name, $PhoneNumber, $volunteerID) {
+        $volunteer = new Volunteer($volunteerID);
+        $volunteer->addEmergencyContact($Name, $PhoneNumber);
+    }
+    public function deleteEmergencyContact($volunteerID, $contactID) {
+        $volunteer = new Volunteer($volunteerID);
+        $volunteer->removeEmergencyContact($contactID);
+    }
    
 }
 
@@ -106,7 +115,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $VolunteerController->addLocation($countries, $cities, $areas, $volunteerID, $userid);
         break;
 
+    
+    case 'addEmergencyContact':
+        $Name = $_POST['ContactName'];
+        $volunteerID = $_POST['VolunteerID'];
+        $PhoneNumber = $_POST['ContactPhone'];
+        $VolunteerController->addEmergencyContact($Name, $PhoneNumber, $volunteerID);
+
+        break;
+
+    case 'deleteContact':
+        echo "deleteContact";
+        $volunteerID = $_POST['VolunteerID'];
+        $contactID = $_POST['ContactID'];
+        $VolunteerController->deleteEmergencyContact($volunteerID, $contactID);
+        break;
+
     }
+
 
 }
 

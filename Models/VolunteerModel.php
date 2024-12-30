@@ -1,6 +1,7 @@
 <?php
 require_once 'UserModel.php';  
 require_once 'BadgeDecorator.php';  
+require_once 'EmergencyContactModel.php';
 class Volunteer extends User {
     public $VolunteerID;   
     public $UserID; 
@@ -9,6 +10,7 @@ class Volunteer extends User {
     public $skills = [];  
     public $volunteer_history = [];  
     public $badge;  
+    public $EmergencyContacts=[];   
     private $conn;
     private $table_name = "Volunteer";
 
@@ -41,6 +43,7 @@ class Volunteer extends User {
                 $this->skills = $this->get_skills();
                 $this->volunteer_history = $this->get_history();
                 $this->badge = $this->get_badge();
+                $this->EmergencyContacts = $this->getEmergencyContacts();
                 echo "BADGE TITLE IS " . $this->badge->get_title();
             } else {
                 echo "No volunteer found with ID: $id";
@@ -176,6 +179,56 @@ class Volunteer extends User {
         return null; 
     }   
 
+    public function getEmergencyContacts() {
+        // Fetch emergency contact details for the volunteer in one query
+        $query = "
+            SELECT ec.EmergencyContactName, ec.EmergencyContactPhone
+            FROM EmergencyContact ec
+            JOIN EmergencyContact_Volunteer ecv ON ec.EmergencyContactID = ecv.EmergencyContactID
+            WHERE ecv.VolunteerID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $this->VolunteerID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
+        $EmergencyContacts = [];
+    
+        while ($row = $result->fetch_assoc()) {
+            $emergencyContact = new EmergencyContact();
+            $emergencyContact->setName($row['EmergencyContactName']);
+            $emergencyContact->setPhoneNumber($row['EmergencyContactPhone']);
+            $EmergencyContacts[] = $emergencyContact;
+        }
+    
+        return $EmergencyContacts;
+    }
+    
+
+    public function addEmergencyContact($Name, $PhoneNumber) {
+        $EmergencyContactID= EmergencyContact::create($Name, $PhoneNumber);
+
+        $query = "INSERT INTO EmergencyContact_Volunteer (EmergencyContactID, VolunteerID) VALUES (?, ?)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ii", $EmergencyContactID, $this->VolunteerID);
+        if (!$stmt->execute()) {
+            echo "Error adding emergency contact: " . $stmt->error;
+            return false;
+        }
+        return true;
+    }
+
+    public function removeEmergencyContact($EmergencyContactID) {
+        $query = "DELETE FROM EmergencyContact_Volunteer WHERE EmergencyContactID = ? AND VolunteerID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ii", $EmergencyContactID, $this->VolunteerID);
+        $stmt->execute();
+    }
+
+    public function updateEmergencyContact($oldName, $oldPhoneNumber, $newName, $newPhoneNumber) {
+        $EmergencyContactID = EmergencyContact::getEmergencyContactId($oldName, $oldPhoneNumber);
+        $emergencycontact = new EmergencyContact($EmergencyContactID);
+        $emergencycontact->update($newName, $newPhoneNumber);
+    }
 
     public static function deletebyUserID($UserID) {
         $conn = Database::getInstance()->getConnection();
@@ -309,7 +362,7 @@ class Volunteer extends User {
         if ($UserID != null) {
             $this->UserID = $UserID;
         }
-        
+
         if ($VolunteerID != null) {
             $this->VolunteerID = $VolunteerID;
         }
