@@ -2,6 +2,8 @@
 require_once 'UserModel.php';  
 require_once 'BadgeDecorator.php';  
 require_once 'EmergencyContactModel.php';
+require_once 'VolunteerHistoryModel.php';
+require_once 'Event.php';
 class Volunteer extends User {
     public $VolunteerID;   
     public $UserID; 
@@ -321,9 +323,7 @@ class Volunteer extends User {
     public function getACCOUNT_CREATION_DATE() {
         return $this->ACCOUNT_CREATION_DATE;
     }
-    public function getPrivileges() {
-        return parent::getPrivileges();
-    }
+   
 
 
 
@@ -606,27 +606,16 @@ class Volunteer extends User {
     }
     
 
-    public function add_history(VolunteerHistory $volunteerHistory) {
-        $start_date = $volunteerHistory->StartDate;
-        $end_date = $volunteerHistory->EndDate;
-        
-        $event_id = $volunteerHistory->Event->EventID;
-    
-        $query = "INSERT INTO VolunteerHistory (StartDate, EndDate, EventID) VALUES (?, ?, ?)";
+    public function add_history($volunteerHistory) {
+      
+        $query = "INSERT INTO Volunteer_VolunteerHistory (VolunteerID, HistoryID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("ssi", $start_date, $end_date, $event_id);
-    
+        $volunteerHistoryID = $volunteerHistory->getVolunteerHistoryID();
+        $stmt->bind_param("ii", $this->VolunteerID, $volunteerHistoryID);
         if ($stmt->execute()) {
-            $history_id = $stmt->insert_id;
-    
-            $query = "INSERT INTO Volunteer_VolunteerHistory (VolunteerID, HistoryID) VALUES (?, ?)";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("ii", $this->VolunteerID, $history_id);
-    
-            if ($stmt->execute()) {
-                return true;
-            }
+            return true;
         }
+    
         return false;
     }
     
@@ -642,7 +631,7 @@ class Volunteer extends User {
     
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
-            // echo "Error preparing statement: " . $this->conn->error;
+            echo "Error preparing statement: " . $this->conn->error;
             return [];
         }
     
@@ -652,13 +641,13 @@ class Volunteer extends User {
         $result = $stmt->get_result();
         $history = [];
     
+        // return objects of VolunteerHistory
         while ($row = $result->fetch_assoc()) {
-            $history[] = [
-                'VolunteerHistoryID' => $row['VolunteerHistoryID'],
-                'StartDate' => $row['StartDate'],
-                'EndDate' => $row['EndDate'],
-                'EventID' => $row['EventID']
-            ];
+            $volunteerHistory = new VolunteerHistory();
+            $volunteerHistory->VolunteerHistoryID = $row['VolunteerHistoryID'];
+            $volunteerHistory->read_by_id($row['VolunteerHistoryID']);
+            $history[] = $volunteerHistory;
+    
         }
     
         $stmt->close();
@@ -666,6 +655,9 @@ class Volunteer extends User {
         return $history;
     }
     
+    
+
+
 
     public function remove_history($history_id) {
         // Delete from the linking table first
@@ -674,14 +666,7 @@ class Volunteer extends User {
         $stmt->bind_param("ii", $this->VolunteerID, $history_id);
     
         if ($stmt->execute()) {
-            // Now delete from the VolunteerHistory table
-            $query = "DELETE FROM VolunteerHistory WHERE VolunteerHistoryID = ?";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("i", $history_id);
-    
-            if ($stmt->execute()) {
-                return true;
-            }
+            return true;
         }
         return false;
     }
@@ -793,10 +778,7 @@ class Volunteer extends User {
         // Step 1: Get the badge ID associated with this volunteer
         $query = "SELECT VolunteerBadgeID FROM volunteer WHERE VolunteerID = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
-        if (!$stmt) {
-            echo "Error preparing statement: " . $stmt->error;
-            return null;
-        }
+     
         echo "volunteer id is $this->VolunteerID";
         $stmt->bind_param("i", $this->VolunteerID);
         $stmt->execute();

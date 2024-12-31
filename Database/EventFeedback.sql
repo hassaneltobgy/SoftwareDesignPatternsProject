@@ -3,6 +3,7 @@ CREATE TABLE EventFeedback (
     Comments TEXT,
     FeedbackDate DATE,
     Rating INT,
+    FeedbackTimeStamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     EventID INT,
     FOREIGN KEY (EventID) REFERENCES Event(EventID)
 );

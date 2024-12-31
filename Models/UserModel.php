@@ -238,6 +238,9 @@ class User {
         }
     }
     public function getPrivileges() {
+        if ($this->conn === null) {
+            $this->conn = Database::getInstance()->getConnection();
+        }
         $query = "SELECT p.* FROM Privilege p
                   JOIN User_Privilege up ON p.PrivilegeID = up.USER_PrivilegeID
                   WHERE up.User_ID = ?";
@@ -251,9 +254,15 @@ class User {
         $stmt->execute();
         $result = $stmt->get_result();
         
+        // create an array of privileges objects
         $privileges = [];
         while ($row = $result->fetch_assoc()) {
-            $privileges[] = $row;
+            $privilege = new Privilege();
+            $privilege->PrivilegeID = $row['PrivilegeID'];
+            $privilege->PrivilegeName = $row['PrivilegeName'];
+            $privilege->Description = $row['Description'];
+            $privilege->AccessLevel = $row['AccessLevel'];
+            $privileges[] = $privilege;
         }
         return $privileges;
     }
@@ -440,14 +449,14 @@ class User {
         // first check if the country id is not null 
         if ($locationCountryId === null) {
             $location = new Location($country, null);
-            $location->create();
+            $location->create($country, null);
             $locationCountryId = $location->AddressID;
         }
       
             // check if the city id is not null 
             if ($locationCityId === null) {
             $location = new Location($city, $locationCountryId);
-            $location->create();
+            $location->create($city, $locationCountryId);   
             $locationCityId = $location->AddressID;
             }
             // else {
@@ -458,7 +467,7 @@ class User {
           { 
                 echo "area id is null";
                     $location = new Location($area, $locationCityId);
-                    $location->create();
+                    $location->create($area, $locationCityId);
                     $locationAreaId = $location->AddressID;
                 }
 

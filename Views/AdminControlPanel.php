@@ -232,12 +232,14 @@ function logout() {
         <td class="dob"><?= $user->DateOfBirth; ?></td>
 
         <td class="privilege">
-            <?= implode(', ', array_map(fn($privilege) => $privilege['PrivilegeName'], $user->Privileges)); ?>
+            <!-- convert the names of privileges array objects to a string separated by comma -->
+            <?= implode(', ', array_map(fn($privilege) => $privilege->PrivilegeName, $user->getPrivileges())); ?>
+
         </td>
 
 
         <td>
-            <button type="button" onclick="openModal(<?= $user->UserID; ?>, '<?= $user->FirstName; ?>', '<?= $user->LastName; ?>', '<?= $user->Email; ?>', '<?= $user->PhoneNumber; ?>', '<?= $user->DateOfBirth; ?>', '<?= $user->USER_NAME; ?>', '<?= $user->PASSWORD_HASH; ?>','<?= implode(', ', array_map(fn($privilege) => $privilege['PrivilegeName'], $user->Privileges));  ?>' ,'<?= $user->UserType; ?>' )">Edit</button>
+            <button type="button" onclick="openModal(<?= $user->UserID; ?>, '<?= $user->FirstName; ?>', '<?= $user->LastName; ?>', '<?= $user->Email; ?>', '<?= $user->PhoneNumber; ?>', '<?= $user->DateOfBirth; ?>', '<?= $user->USER_NAME; ?>', '<?= $user->PASSWORD_HASH; ?>','<?= implode(', ', array_map(fn($privilege) => $privilege->PrivilegeName, $user->getPrivileges()));  ?>' ,'<?= $user->UserType; ?>' )">Edit</button>
             <form method="POST" action="AdminControlPanel.php" onsubmit="return confirm('Are you sure you want to delete this user?');" style="display:inline;">
             <input type="hidden" name="action" value="deleteuser">
             <input type="hidden" name="UserID" value="<?= $user->UserID; ?>">

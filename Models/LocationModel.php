@@ -7,28 +7,57 @@ class Location
     public $ParentID;
     private $conn;
 
-    public function __construct($Name = '', $ParentID = NULL) {
+    public function __construct($AddressID= null, $Name = '', $ParentID = NULL) {
         $this->conn = Database::getInstance()->getConnection();
         $this->Name = $Name;
         $this->ParentID = $ParentID;
+        $this->AddressID = $AddressID;
     }
 
-    public function create() {
-        $query = "INSERT INTO Location (Name, ParentID) VALUES (?, ?)";
-        $stmt = $this->conn->prepare($query);
 
-        // Bind parameters
-        $stmt->bind_param('si', $this->Name, $this->ParentID);
 
-        // Execute query
+    
+    public static function create($AddressID= null, $Name= null, $ParentID= null)
+    {
+        if ($AddressID !== null) {
+        $conn = Database::getInstance()->getConnection();
+    
+        // Check if the location already exists
+        $checkQuery = "SELECT AddressID FROM Location WHERE AddressID = ? AND Name = ? AND ParentID = ?";
+        $checkStmt = $conn->prepare($checkQuery);
+        $checkStmt->bind_param('isi', $AddressID, $Name, $ParentID);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
+        
+        if ($checkResult->num_rows > 0) {
+        echo "Record already exists";
+            // If a matching record is found, return the existing Location object
+            $existingRecord = $checkResult->fetch_assoc();
+            $location = new Location($AddressID, $Name, $ParentID);
+            $location->AddressID = $existingRecord['AddressID'];
+    
+            return $location;
+        }
+    }
+    
+        // If no matching record exists, insert a new one
+        $query = "INSERT INTO Location (AddressID, Name, ParentID) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('isi', $AddressID, $Name, $ParentID);
+    
         if ($stmt->execute()) {
-            $this->AddressID = $this->conn->insert_id;
-            return true;
+            $location = new Location($AddressID, $Name, $ParentID);
+            $location->AddressID = $conn->insert_id;
+    
+            return $location; // Return the new Location object
         }
         else {
-            echo "Error: " . $stmt->error;
+            echo $stmt->error;
         }
+    
+        return null; // Return null if the insertion fails
     }
+    
 
     public function read() {
         $query = "SELECT AddressID, Name, ParentID FROM Location WHERE AddressID = ?";
@@ -52,17 +81,17 @@ class Location
 
         return $row ? true : false;
     }
+    
 
     public function update() {
         $query = "UPDATE Location SET Name = ?, ParentID = ? WHERE AddressID = ?";
         $stmt = $this->conn->prepare($query);
 
-        // Bind parameters
         $stmt->bind_param('sii', $this->Name, $this->ParentID, $this->AddressID);
 
-        // Execute query
         return $stmt->execute();
     }
+
 
     public function delete() {
         $query = "DELETE FROM Location WHERE AddressID = ?";
@@ -79,20 +108,20 @@ class Location
     {
         $this->Name = $Name;
         $this->ParentID = 0;
-        return $this->create();
+        // return $this->create();
     }
 
     public function addCity($Name, $ParentID)
     {
         $this->Name = $Name;
         $this->ParentID = $ParentID;
-        return $this->create();
+        // return $this->create();
     }
     public function addArea($Name, $ParentID)
     {
         $this->Name = $Name;
         $this->ParentID = $ParentID;
-        return $this->create();
+        // return $this->create();
     }
     
 
@@ -197,6 +226,7 @@ class Location
 
     public static function getLocationID($Name)
     {
+        echo "Name is in getLocationID is " . $Name;
         $query = "SELECT AddressID FROM Location WHERE Name = ?";
         $conn = Database::getInstance()->getConnection();
         $stmt = $conn->prepare($query);
@@ -206,7 +236,7 @@ class Location
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
 
-        return $row['AddressID']?? null;
+        return $row['AddressID']?? $stmt->error;
     }
 
     public function getAllLocations() {
@@ -241,6 +271,25 @@ class Location
         }
 
         return $childLocations;
+    }
+
+    public function read_by_id($id)
+    {
+        $query = "SELECT * FROM Location WHERE AddressID = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $this->AddressID = $row['AddressID'];
+            $this->Name = $row['Name'];
+            $this->ParentID = $row['ParentID'];
+            
+            return $this;
+        }
+
+        return null;
     }
 }
 ?>

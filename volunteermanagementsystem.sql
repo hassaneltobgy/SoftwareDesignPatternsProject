@@ -47,7 +47,7 @@ CREATE TABLE `admin` (
 
 LOCK TABLES `admin` WRITE;
 /*!40000 ALTER TABLE `admin` DISABLE KEYS */;
-INSERT INTO `admin` VALUES (4,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$SQGyqFU5xT24g5A/IlNV9.jpJyFG0UNkAj6s6WsuOcAhszusO8NLy','2024-12-29','2024-12-29',118),(5,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$FQgGLJC.r0dUKmPXZxwCIuEO/A5FYUc2e/s8Z9BQjjbYvROlAlZrS','2024-12-29','2024-12-29',119);
+INSERT INTO `admin` VALUES (4,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',118),(5,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$FQgGLJC.r0dUKmPXZxwCIuEO/A5FYUc2e/s8Z9BQjjbYvROlAlZrS','2024-12-29','2024-12-29',119);
 /*!40000 ALTER TABLE `admin` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -249,7 +249,7 @@ CREATE TABLE `badgedecorator` (
   PRIMARY KEY (`decorator_id`),
   KEY `badge_id` (`badge_id`),
   CONSTRAINT `badgedecorator_ibfk_1` FOREIGN KEY (`badge_id`) REFERENCES `volunteerbadge` (`badge_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -269,11 +269,11 @@ DROP TABLE IF EXISTS `emergencycontact`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `emergencycontact` (
-  `EmergencyContactID` int NOT NULL,
+  `EmergencyContactID` int NOT NULL AUTO_INCREMENT,
   `EmergencyContactName` varchar(50) NOT NULL,
   `EmergencyContactPhone` varchar(50) NOT NULL,
   PRIMARY KEY (`EmergencyContactID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -282,6 +282,7 @@ CREATE TABLE `emergencycontact` (
 
 LOCK TABLES `emergencycontact` WRITE;
 /*!40000 ALTER TABLE `emergencycontact` DISABLE KEYS */;
+INSERT INTO `emergencycontact` VALUES (6,'John Doe','01283103800'),(7,'alice John','01272636563'),(10,'Jane Smith','012722382'),(11,'Sara','01272636563');
 /*!40000 ALTER TABLE `emergencycontact` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -296,9 +297,9 @@ CREATE TABLE `emergencycontact_volunteer` (
   `EmergencyContactID` int NOT NULL,
   `VolunteerID` int NOT NULL,
   PRIMARY KEY (`EmergencyContactID`,`VolunteerID`),
-  KEY `VolunteerID` (`VolunteerID`),
-  CONSTRAINT `emergencycontact_volunteer_ibfk_1` FOREIGN KEY (`EmergencyContactID`) REFERENCES `emergencycontact` (`EmergencyContactID`),
-  CONSTRAINT `emergencycontact_volunteer_ibfk_2` FOREIGN KEY (`VolunteerID`) REFERENCES `volunteer` (`VolunteerID`)
+  KEY `fk_volunteer` (`VolunteerID`),
+  CONSTRAINT `fk_emergency_contact` FOREIGN KEY (`EmergencyContactID`) REFERENCES `emergencycontact` (`EmergencyContactID`) ON DELETE CASCADE,
+  CONSTRAINT `fk_volunteer` FOREIGN KEY (`VolunteerID`) REFERENCES `volunteer` (`VolunteerID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -308,6 +309,7 @@ CREATE TABLE `emergencycontact_volunteer` (
 
 LOCK TABLES `emergencycontact_volunteer` WRITE;
 /*!40000 ALTER TABLE `emergencycontact_volunteer` DISABLE KEYS */;
+INSERT INTO `emergencycontact_volunteer` VALUES (10,49),(11,49);
 /*!40000 ALTER TABLE `emergencycontact_volunteer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -327,7 +329,7 @@ CREATE TABLE `event` (
   PRIMARY KEY (`EventID`),
   KEY `EventLocationID` (`EventLocationID`),
   CONSTRAINT `event_ibfk_1` FOREIGN KEY (`EventLocationID`) REFERENCES `location` (`AddressID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -336,6 +338,7 @@ CREATE TABLE `event` (
 
 LOCK TABLES `event` WRITE;
 /*!40000 ALTER TABLE `event` DISABLE KEYS */;
+INSERT INTO `event` VALUES (32,'anything','2002-02-02',141,'please work');
 /*!40000 ALTER TABLE `event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -402,6 +405,7 @@ CREATE TABLE `eventfeedback` (
   `FeedbackID` int NOT NULL AUTO_INCREMENT,
   `Comments` text,
   `FeedbackDate` date DEFAULT NULL,
+  `FeedbackTimestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `Rating` int DEFAULT NULL,
   `EventID` int DEFAULT NULL,
   PRIMARY KEY (`FeedbackID`),
@@ -612,7 +616,7 @@ CREATE TABLE `location` (
   PRIMARY KEY (`AddressID`),
   KEY `ParentID` (`ParentID`),
   CONSTRAINT `location_ibfk_1` FOREIGN KEY (`ParentID`) REFERENCES `location` (`AddressID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -621,6 +625,7 @@ CREATE TABLE `location` (
 
 LOCK TABLES `location` WRITE;
 /*!40000 ALTER TABLE `location` DISABLE KEYS */;
+INSERT INTO `location` VALUES (126,'Egypt',NULL),(127,'Cairo',126),(128,'Tagamoa',127),(129,'Maadi',127),(130,'Cairo, Egypt',126),(131,'Nasr City',130),(132,'Gatwick',127),(133,'masr el gedida',130),(134,'Damietta',126),(135,'idk',134),(136,'Madinet Nasr',127),(137,'Dakahleya',127),(139,'Madinaty',127),(141,'New Cairo',127);
 /*!40000 ALTER TABLE `location` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -988,11 +993,11 @@ CREATE TABLE `organization` (
   `ACCOUNT_CREATION_DATE` date DEFAULT NULL,
   `DateOfCreation` date DEFAULT NULL,
   PRIMARY KEY (`OrganizationID`),
-  KEY `OrganizationTypeID` (`OrganizationTypeID`),
   KEY `UserID` (`UserID`),
-  CONSTRAINT `organization_ibfk_1` FOREIGN KEY (`OrganizationTypeID`) REFERENCES `organizationtype` (`OrganizationTypeID`),
+  KEY `organization_ibfk_1` (`OrganizationTypeID`),
+  CONSTRAINT `organization_ibfk_1` FOREIGN KEY (`OrganizationTypeID`) REFERENCES `organizationtype` (`OrganizationTypeID`) ON DELETE SET NULL,
   CONSTRAINT `organization_ibfk_3` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1001,7 +1006,7 @@ CREATE TABLE `organization` (
 
 LOCK TABLES `organization` WRITE;
 /*!40000 ALTER TABLE `organization` DISABLE KEYS */;
-INSERT INTO `organization` VALUES (1,'Masr el Kheir','No description available.','Masr.ElKheir@example.com','12345678',4,'No website available.',109,'Masr.ElKheir@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.',NULL,NULL,'2002-02-02'),(7,'Resala','No description available.','Resala@example.com','12345678',4,'No website available.',113,'Resala@example.com','$2y$10$DlmrBaUkHt7q7AIxKbHmmebEPddn66cGvUWnoQY2GwVTu6Aivp1hC','2024-12-29','2024-12-29','2002-02-02');
+INSERT INTO `organization` VALUES (8,'Masr el Kheir','No description available.','Masr.ElKheir@example.com','12345678',NULL,'No website available.',121,'Masr.ElKheir@example.com','$2y$10$Ve5fcXXIOMJoKjBNJCyiz.p/UMOE73laR7o..XAb8S2LYq.iNnLdW','2024-12-29','2024-12-29','2002-02-02');
 /*!40000 ALTER TABLE `organization` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1042,8 +1047,8 @@ CREATE TABLE `organization_event` (
   `OrganizationID` int NOT NULL,
   `EventID` int NOT NULL,
   PRIMARY KEY (`OrganizationID`,`EventID`),
-  KEY `EventID` (`EventID`),
-  CONSTRAINT `organization_event_ibfk_1` FOREIGN KEY (`OrganizationID`) REFERENCES `organization` (`OrganizationID`),
+  KEY `organization_event_ibfk_2` (`EventID`),
+  CONSTRAINT `organization_event_ibfk_1` FOREIGN KEY (`OrganizationID`) REFERENCES `organization` (`OrganizationID`) ON DELETE CASCADE,
   CONSTRAINT `organization_event_ibfk_2` FOREIGN KEY (`EventID`) REFERENCES `event` (`EventID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1054,6 +1059,7 @@ CREATE TABLE `organization_event` (
 
 LOCK TABLES `organization_event` WRITE;
 /*!40000 ALTER TABLE `organization_event` DISABLE KEYS */;
+INSERT INTO `organization_event` VALUES (8,32);
 /*!40000 ALTER TABLE `organization_event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1081,32 +1087,6 @@ CREATE TABLE `organization_notificationtype` (
 LOCK TABLES `organization_notificationtype` WRITE;
 /*!40000 ALTER TABLE `organization_notificationtype` DISABLE KEYS */;
 /*!40000 ALTER TABLE `organization_notificationtype` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `organization_organizationtype`
---
-
-DROP TABLE IF EXISTS `organization_organizationtype`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `organization_organizationtype` (
-  `OrganizationID` int NOT NULL,
-  `OrganizationTypeID` int NOT NULL,
-  PRIMARY KEY (`OrganizationID`,`OrganizationTypeID`),
-  KEY `OrganizationTypeID` (`OrganizationTypeID`),
-  CONSTRAINT `organization_organizationtype_ibfk_1` FOREIGN KEY (`OrganizationID`) REFERENCES `organization` (`OrganizationID`),
-  CONSTRAINT `organization_organizationtype_ibfk_2` FOREIGN KEY (`OrganizationTypeID`) REFERENCES `organizationtype` (`OrganizationTypeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `organization_organizationtype`
---
-
-LOCK TABLES `organization_organizationtype` WRITE;
-/*!40000 ALTER TABLE `organization_organizationtype` DISABLE KEYS */;
-/*!40000 ALTER TABLE `organization_organizationtype` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1143,10 +1123,10 @@ DROP TABLE IF EXISTS `organizationtype`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `organizationtype` (
-  `OrganizationTypeID` int NOT NULL,
+  `OrganizationTypeID` int NOT NULL AUTO_INCREMENT,
   `OrganizationTypeName` varchar(50) NOT NULL,
   PRIMARY KEY (`OrganizationTypeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1155,7 +1135,7 @@ CREATE TABLE `organizationtype` (
 
 LOCK TABLES `organizationtype` WRITE;
 /*!40000 ALTER TABLE `organizationtype` DISABLE KEYS */;
-INSERT INTO `organizationtype` VALUES (1,'Non-Profit'),(2,'Educational'),(3,'Government'),(4,'Charity'),(5,'Health'),(6,'Environmental'),(7,'Sports'),(8,'Cultural'),(9,'Religious'),(10,'Community');
+INSERT INTO `organizationtype` VALUES (1,'Non-Profit'),(2,'Educational'),(3,'Government'),(5,'Health'),(6,'Environmental'),(7,'Sports'),(8,'Cultural'),(9,'Religious'),(10,'Community'),(13,'Charity');
 /*!40000 ALTER TABLE `organizationtype` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1227,7 +1207,7 @@ CREATE TABLE `privilege` (
   `Description` varchar(255) NOT NULL,
   `AccessLevel` int NOT NULL,
   PRIMARY KEY (`PrivilegeID`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1236,7 +1216,7 @@ CREATE TABLE `privilege` (
 
 LOCK TABLES `privilege` WRITE;
 /*!40000 ALTER TABLE `privilege` DISABLE KEYS */;
-INSERT INTO `privilege` VALUES (1,'Admin Access','Full access to all system features',5),(2,'Editor Access','Can edit content but not manage system settings',3),(3,'Viewer Access','Can only view content without making changes',1),(4,'Event Manager','Can create and manage volunteer events',4),(5,'Report Access','Can view and generate reports',2);
+INSERT INTO `privilege` VALUES (1,'Admin Access','Full access to all system features',5),(2,'Editor Access','Can edit content but not manage system settings',3),(3,'Viewer Access','Can only view content without making changes',1),(4,'Event Manager','Can create and manage volunteer events',4),(9,'Report Access','Can view and edit reports',2);
 /*!40000 ALTER TABLE `privilege` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1691,7 +1671,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `Email` (`Email`),
   KEY `UserTypeID` (`UserTypeID`),
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`UserTypeID`) REFERENCES `usertype` (`UserTypeID`)
-) ENGINE=InnoDB AUTO_INCREMENT=120 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1700,7 +1680,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (75,'Bob','Brown','bobb@example.com','5678901234','2002-08-07','bobbrown','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-25','2024-12-05',2),(86,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',1),(93,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-02-02','farida@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(95,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(96,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$0lkVzJDkXdFc4TF70BgY8uEN8zJjjNMXeCvk0ZZiAtQLOjjSa.eku','2024-12-28','2024-12-28',1),(97,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$zLUaGcH7lWN1I1wnfnPcgu/dRiWPfe6Xzj/ZwRdrqqeor1IjLYuJS','2024-12-28','2024-12-28',1),(98,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$f0HMDwLOADKo3WorbFGKiut7vRWFLAWXe0IPBLEW/yNpBppxzNd26','2024-12-28','2024-12-28',1),(109,'Masr el Kheir','Masr el Kheir','Masr.ElKheir@example.com','12345678','2002-02-02','Masr.ElKheir@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-29','2024-12-29',3),(113,'Resala','.','Resala@example.com','12345678','2002-02-02','Resala@example.com','$2y$10$L6sjMwdnE.fJ2Y//DShg7eBB36HN7neNABK9rtb5pii8sAWytBvLK','2024-12-29','2024-12-29',3),(118,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$.ufEsQV0No3Am0kk4T4i0eHNDjWyo22RYJoCw2isvUu0YHofATk5a','2024-12-29','2024-12-29',2),(119,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$CIhU1A6h9OAYwDZO5KMNEuO/ePk9Zcz0pRgIG0mo8ma4GAyYKCFgu','2024-12-29','2024-12-29',2);
+INSERT INTO `user` VALUES (75,'Bob','Brown','bobb@example.com','5678901234','2002-08-07','bobbrown','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-25','2024-12-05',2),(86,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',1),(93,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhusseiny@gmail.com','$2y$10$kUwMOEKVh9mmLxA89OGZj.8rF6BRHSSAHztwZ4UVgvxqJRi9bhSba','2002-02-02','2002-02-02',1),(95,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(96,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$0lkVzJDkXdFc4TF70BgY8uEN8zJjjNMXeCvk0ZZiAtQLOjjSa.eku','2024-12-28','2024-12-28',1),(97,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$zLUaGcH7lWN1I1wnfnPcgu/dRiWPfe6Xzj/ZwRdrqqeor1IjLYuJS','2024-12-28','2024-12-28',1),(98,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$f0HMDwLOADKo3WorbFGKiut7vRWFLAWXe0IPBLEW/yNpBppxzNd26','2024-12-28','2024-12-28',1),(118,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',2),(119,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$CIhU1A6h9OAYwDZO5KMNEuO/ePk9Zcz0pRgIG0mo8ma4GAyYKCFgu','2024-12-29','2024-12-29',2),(121,'Masr el Kheir','Masr el Kheir','Masr.ElKheir@example.com','12345678','2002-02-02','Masr.ElKheir@example.com','$2y$10$BfH9Tpy73UsnA8Oud7oUg.s3kEftvqeLwCMJKJih/od7T4O9sskKi','2024-12-29','2024-12-29',3);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1715,9 +1695,9 @@ CREATE TABLE `user_address` (
   `UserID` int NOT NULL,
   `AddressID` int NOT NULL,
   PRIMARY KEY (`UserID`,`AddressID`),
-  KEY `AddressID` (`AddressID`),
-  CONSTRAINT `user_address_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
-  CONSTRAINT `user_address_ibfk_2` FOREIGN KEY (`AddressID`) REFERENCES `location` (`AddressID`)
+  KEY `fk_user_address` (`AddressID`),
+  CONSTRAINT `fk_user_address` FOREIGN KEY (`AddressID`) REFERENCES `location` (`AddressID`) ON DELETE CASCADE,
+  CONSTRAINT `user_address_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1727,6 +1707,7 @@ CREATE TABLE `user_address` (
 
 LOCK TABLES `user_address` WRITE;
 /*!40000 ALTER TABLE `user_address` DISABLE KEYS */;
+INSERT INTO `user_address` VALUES (93,128),(93,136);
 /*!40000 ALTER TABLE `user_address` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1768,7 +1749,7 @@ CREATE TABLE `user_privilege` (
   `User_PrivilegeID` int NOT NULL,
   PRIMARY KEY (`User_ID`,`User_PrivilegeID`),
   KEY `user_privilege_ibfk_2` (`User_PrivilegeID`),
-  CONSTRAINT `user_privilege_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `user` (`UserID`),
+  CONSTRAINT `user_privilege_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE,
   CONSTRAINT `user_privilege_ibfk_2` FOREIGN KEY (`User_PrivilegeID`) REFERENCES `privilege` (`PrivilegeID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1779,7 +1760,7 @@ CREATE TABLE `user_privilege` (
 
 LOCK TABLES `user_privilege` WRITE;
 /*!40000 ALTER TABLE `user_privilege` DISABLE KEYS */;
-INSERT INTO `user_privilege` VALUES (95,1),(109,1),(113,1),(118,1),(109,2),(75,3),(86,3),(93,3),(109,3),(86,4),(93,4);
+INSERT INTO `user_privilege` VALUES (95,1),(118,1),(121,1),(118,2),(75,3),(86,3),(93,3),(86,4),(93,4),(93,9);
 /*!40000 ALTER TABLE `user_privilege` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1844,7 +1825,7 @@ CREATE TABLE `volunteer` (
 
 LOCK TABLES `volunteer` WRITE;
 /*!40000 ALTER TABLE `volunteer` DISABLE KEYS */;
-INSERT INTO `volunteer` VALUES (47,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',0,0,7,86),(49,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-02-02','farida@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,93),(51,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,95),(52,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$yJQ0mm86kf984pBXPvnwGu6GLDolfYaDq4aO3m.G3VGwQNqyfUhWm','2024-12-28','2024-12-28',0,0,7,96),(53,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$r92GvTrRiBsAo2k0fHc9TuUVx1RPbDthh/NckJCUnmw3OXTTg4FWm','2024-12-28','2024-12-28',0,0,7,97),(54,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$qgr2MldxxEz7gJhs5n.6UuO99YbbdnAiz7spcWKXxAj8/kbr4y0lO','2024-12-28','2024-12-28',0,0,7,98);
+INSERT INTO `volunteer` VALUES (47,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',0,0,9,86),(49,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhusseiny@gmail.com','$2y$10$kUwMOEKVh9mmLxA89OGZj.8rF6BRHSSAHztwZ4UVgvxqJRi9bhSba','2002-02-02','2002-02-02',0,0,7,93),(51,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,95),(52,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$yJQ0mm86kf984pBXPvnwGu6GLDolfYaDq4aO3m.G3VGwQNqyfUhWm','2024-12-28','2024-12-28',0,0,7,96),(53,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$r92GvTrRiBsAo2k0fHc9TuUVx1RPbDthh/NckJCUnmw3OXTTg4FWm','2024-12-28','2024-12-28',0,0,11,97),(54,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$qgr2MldxxEz7gJhs5n.6UuO99YbbdnAiz7spcWKXxAj8/kbr4y0lO','2024-12-28','2024-12-28',0,0,7,98);
 /*!40000 ALTER TABLE `volunteer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1975,6 +1956,7 @@ CREATE TABLE `volunteer_volunteerhistory` (
 
 LOCK TABLES `volunteer_volunteerhistory` WRITE;
 /*!40000 ALTER TABLE `volunteer_volunteerhistory` DISABLE KEYS */;
+INSERT INTO `volunteer_volunteerhistory` VALUES (49,21);
 /*!40000 ALTER TABLE `volunteer_volunteerhistory` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2098,7 +2080,7 @@ CREATE TABLE `volunteerhistory` (
   PRIMARY KEY (`VolunteerHistoryID`),
   KEY `EventID` (`EventID`),
   CONSTRAINT `volunteerhistory_ibfk_1` FOREIGN KEY (`EventID`) REFERENCES `event` (`EventID`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2107,6 +2089,7 @@ CREATE TABLE `volunteerhistory` (
 
 LOCK TABLES `volunteerhistory` WRITE;
 /*!40000 ALTER TABLE `volunteerhistory` DISABLE KEYS */;
+INSERT INTO `volunteerhistory` VALUES (21,'2002-02-02','2008-02-03',32);
 /*!40000 ALTER TABLE `volunteerhistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -2119,4 +2102,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-29 12:49:55
+-- Dump completed on 2024-12-31 22:50:10

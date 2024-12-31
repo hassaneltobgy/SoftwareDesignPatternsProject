@@ -1,5 +1,10 @@
 <?php
 require_once '../Models/VolunteerModel.php';
+require_once '../Models/VolunteerHistoryModel.php';
+require_once '../Models/VolunteerFeedbackModel.php';
+require_once '../Models/Event.php';
+require_once '../Models/EventFeedbackModel.php';
+
 class VolunteerController {
     private $VolunteerModel;
     public function __construct() {
@@ -9,6 +14,7 @@ class VolunteerController {
     public function get_all_Volunteers() {
         return Volunteer::getAllVolunteers();
     }
+ 
 
     public function getVolunteerbyId($id) {
         echo "getting volunteer by id in controller $id"; 
@@ -62,7 +68,62 @@ class VolunteerController {
         $volunteer->removeEmergencyContact($contactID);
     }
    
+    public function addVolunteerHistory($VolunteerID, $volunteerOrganization, $volunteerStartDate, $volunteerEndDate, $EventName, $EventDescription, $EventCountry, $EventCity, $EventArea) {
+        
+        echo "VolunteerID is " . $VolunteerID;
+        
+        $locationidCountry = Location::getLocationID($EventCountry); // parent id to city 
+        $locationidCity = Location::getLocationID($EventCity); // parent id to area
+        $locationidArea = Location::getLocationID($EventArea); 
+
+        // create an object for location that has parent id to city
+        $locationEvent = Location::create($locationidArea,$EventArea, $locationidCity);
+        
+        // create an event entry with event name, event description, organization name, event country, event city, event area
+        $event = Event::create($EventName, $volunteerStartDate, $locationEvent, $EventDescription, $volunteerOrganization);
+        // then create volunteer history object that takes the event object as well as start date and end date
+        $volunteerHistory = VolunteerHistory::create($volunteerStartDate, $volunteerEndDate, $event);
+
+        // add the volunteer history to the volunteer itself 
+        $volunteer = new Volunteer($VolunteerID);
+        $volunteer->add_history($volunteerHistory);
+    
+
+    }
+
+    public function deleteVolunteerHistory($VolunteerHistoryID, $VolunteerID) {
+        $volunteer = new Volunteer($VolunteerID);
+        $volunteer->remove_history($VolunteerHistoryID);
+    }
+
+    public function editVolunteerHistory($VolunteerHistoryID, $OrganizationName, $StartDate, $EndDate, $EventName, $EventDescription, $EventLocation) {
+        $volunteerHistory = new VolunteerHistory($VolunteerHistoryID);
+
+      
+        $location = explode(",", $EventLocation);
+
+        // trim all the white spaces
+        $location[0] = trim($location[0]);
+        $location[1] = trim($location[1]);
+        $location[2] = trim($location[2]);
+        $locationidCountry = Location::getLocationID($location[0]); // parent id to city
+        $locationidCity = Location::getLocationID($location[1]); // parent id to area
+        $locationidArea = Location::getLocationID($location[2]);
+
+
+        // create an object for location that has parent id to city
+        $locationEvent = new Location($locationidArea,$location[2], $locationidCity);
+       
+
+        $event = Event::create($EventName, $StartDate, $locationEvent, $EventDescription, $OrganizationName);
+     
+        $volunteerHistory->update($StartDate, $EndDate, $event);
+
+        
+
+    }
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $VolunteerController = new VolunteerController();
@@ -131,9 +192,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $VolunteerController->deleteEmergencyContact($volunteerID, $contactID);
         break;
 
+    
+    case 'addVolunteerHistory':
+        $VolunteerController->addVolunteerHistory( $_POST['VolunteerID'], $_POST['volunteerOrganization'],
+         $_POST['volunteerStartDate'], $_POST['volunteerEndDate'], $_POST['EventName'], $_POST['EventDescription'], 
+        $_POST['EventCountry'], $_POST['EventCity'], $_POST['EventArea']);
+        break;
+    
+    case 'deleteVolunteerHistory':
+        $VolunteerController->deleteVolunteerHistory($_POST['VolunteerHistoryID'], $_POST['VolunteerID']);
+        break;
+
+
+    case 'editVolunteerHistory':
+        echo "editHistory";
+        $VolunteerController->editVolunteerHistory($_POST['VolunteerHistoryID'], $_POST['OrganizationName'],
+        $_POST['StartDate'], $_POST['EndDate'], $_POST['EventName'], $_POST['EventDescription'], 
+        $_POST['EventLocation']);
+        break;
     }
-
-
 }
 
 ?>

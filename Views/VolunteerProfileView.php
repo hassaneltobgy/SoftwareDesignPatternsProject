@@ -134,42 +134,130 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
 
 <div class="volunteer-section">
     <h2>Volunteer History</h2>
-    <form id="volunteerForm">
+    <form id="volunteerForm" action="VolunteerProfileView.php" method="POST">
+        <input type="hidden" name="action" value="addVolunteerHistory">
         <div class="form-row">
             <div>
-                <label for="volunteerOrganization">Organization</label>
+                <label for="volunteerOrganization">Organization Name</label>
                 <input type="text" id="volunteerOrganization" name="volunteerOrganization" required>
             </div>
             <div>
-                <label for="volunteerRole">Role</label>
-                <input type="text" id="volunteerRole" name="volunteerRole" required>
+                <label for="volunteerStartDate">Start Date</label>
+                <input type="date" id="volunteerStartDate" name="volunteerStartDate" required>
             </div>
             <div>
-                <label for="volunteerDate">Date</label>
-                <input type="date" id="volunteerDate" name="volunteerDate" required>
+                <label for="volunteerEndDate">End Date</label>
+                <input type="date" id="volunteerEndDate" name="volunteerEndDate" required>
+            </div>
+            <div>
+                <label for="EventName">Event Name</label>
+                <input type="text" id="EventName" name="EventName" required>
+            </div>
+            <div>
+                <label for="EventDescription">Event Description</label>
+                <input type="text" id="EventDescription" name="EventDescription" required>
+            </div>
+            <div>
+                <label for="EventCountry">Coutry</label>
+                <input type="text" id="EventCountry" name="EventCountry" required>
+            </div>
+            <div>
+                <label for="EventCity">City</label>
+                <input type="text" id="EventCity" name="EventCity" required>
+            </div>
+            <div>
+                <label for="EventArea">Area</label>
+                <input type="text" id="EventArea" name="EventArea" required>
             </div>
         </div>
-        <button type="submit">Add Volunteer Experience</button>
+        <button type="button" onclick="addVolunteerHistory(
+        <?= $volunteer->getVolunteerID(); ?>,
+        document.getElementById('volunteerOrganization').value,
+        document.getElementById('volunteerStartDate').value,
+        document.getElementById('volunteerEndDate').value,
+        document.getElementById('EventName').value,
+        document.getElementById('EventDescription').value,
+        document.getElementById('EventCountry').value,
+        document.getElementById('EventCity').value,
+        document.getElementById('EventArea').value
+    )">Add Volunteer History</button>
     </form>
 
     <div id="volunteerList">
-        <h3>Volunteer History</h3>
-        <div id="volunteerContainer" class="volunteer-cards">
-            <!-- Pre-populated dummy volunteer experiences -->
-            <div class="volunteer-card">
-                <h4>Red Cross</h4>
-                <p>Role: Volunteer</p>
-                <p>Date: 2023-07-15</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
+    <h3>Volunteer History</h3>
+    <div id="volunteerContainer" class="volunteer-cards">
+        <?php foreach ($volunteer->get_volunteer_history() as $volunteerHistory): ?>
+            <div class="volunteer-card" id="card<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                <h4>
+                    <strong>Organization Name:</strong>
+                    <span id="organizationNameDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <?= htmlspecialchars($volunteerHistory->get_event()->get_organization_name()); ?>
+                    </span>
+                    <input type="text" id="organizationNameEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="organizationName" value="<?= htmlspecialchars($volunteerHistory->get_event()->get_organization_name()); ?>" style="display:none;">
+                </h4>
+                <p>
+                    <strong>Start Date:</strong>
+                    <span id="startDateDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <?= htmlspecialchars($volunteerHistory->getStartDate()); ?>
+                    </span>
+                    <input type="date" id="startDateEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="startDate" value="<?= htmlspecialchars($volunteerHistory->getStartDate()); ?>" style="display:none;">
+                </p>
+                <p>
+                    <strong>End Date:</strong>
+                    <span id="endDateDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <?= htmlspecialchars($volunteerHistory->getEndDate()); ?>
+                    </span>
+                    <input type="date" id="endDateEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="endDate" value="<?= htmlspecialchars($volunteerHistory->getEndDate()); ?>" style="display:none;">
+                </p>
+                <p>
+                    <strong>Event Name:</strong>
+                    <span id="eventNameDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <?= htmlspecialchars($volunteerHistory->get_event()->getEventName()); ?>
+                    </span>
+                    <input type="text" id="eventNameEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="eventName" value="<?= htmlspecialchars($volunteerHistory->get_event()->getEventName()); ?>" style="display:none;">
+                </p>
+                <p>
+                    <strong>Event Description:</strong>
+                    <span id="eventDescriptionDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <?= htmlspecialchars($volunteerHistory->get_event()->getEventDescription()); ?>
+                    </span>
+                    <textarea id="eventDescriptionEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="eventDescription" style="display:none;"><?= htmlspecialchars($volunteerHistory->get_event()->getEventDescription()); ?></textarea>
+                </p>
+                <p>
+                    <strong>Event Location:</strong>
+                    <span id="eventLocationDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <?= htmlspecialchars($volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID())); ?>
+                    </span>
+                    <input type="text" id="eventLocationEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="eventLocation" value="<?= htmlspecialchars($volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID())); ?>" style="display:none;">
+                </p>
+
+                <button type="button" onclick="toggleEditMode(<?= $volunteerHistory->getVolunteerHistoryID(); ?>,  '<?= $volunteerHistory->get_event()->get_organization_name(); ?>', 
+        '<?= $volunteerHistory->getStartDate(); ?>', 
+        '<?= $volunteerHistory->getEndDate(); ?>', 
+        '<?= $volunteerHistory->get_event()->getEventName(); ?>', 
+        '<?= $volunteerHistory->get_event()->getEventDescription(); ?>', 
+        '<?= $volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID()); ?>')">Update</button>
+                <button type="button" 
+    id="saveButton<?= $volunteerHistory->getVolunteerHistoryID(); ?>" 
+    style="display:none;" 
+    onclick="saveChanges(
+        '<?= $volunteerHistory->get_event()->get_organization_name(); ?>', 
+        '<?= $volunteerHistory->getStartDate(); ?>', 
+        '<?= $volunteerHistory->getEndDate(); ?>', 
+        '<?= $volunteerHistory->get_event()->getEventName(); ?>', 
+        '<?= $volunteerHistory->get_event()->getEventDescription(); ?>', 
+        '<?= $volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID()); ?>', 
+        <?= $volunteerHistory->getVolunteerHistoryID(); ?>
+    )">Save Changes</button>
+
+
+
+                <button type="button" onclick="deleteVolunteerHistory(<?= $volunteerHistory->getVolunteerHistoryID(); ?>, <?= $volunteer->getVolunteerID(); ?>)">Remove</button>
             </div>
-            <div class="volunteer-card">
-                <h4>Animal Shelter</h4>
-                <p>Role: Caregiver</p>
-                <p>Date: 2022-10-20</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
+</div>
+
 </div>
 
         <!-- Notification Settings Section -->
@@ -238,9 +326,9 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
     <h2>Privileges</h2>
     <label>Privileges</label>
     <ul>
-        <li>Admin</li>
-        <li>Editor</li>
-        <li>Viewer</li>
+        <?php foreach ($volunteer->getPrivileges() as $privilege): ?>
+            <li><?= htmlspecialchars($privilege->PrivilegeName); ?></li>   
+        <?php endforeach; ?>
     </ul>
 </div>
 
@@ -248,6 +336,159 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
 </body>
 </html>
 <script>
+
+    function saveChanges(OrganizationName, StartDate, EndDate, EventName, EventDescription, EventLocation, VolunteerHistoryID) {
+        console.log('Saving changes...');
+        
+
+        // document.getElementById(`organizationNameDisplay${VolunteerHistoryID}`).textContent = OrganizationName;
+        // document.getElementById(`startDateDisplay${VolunteerHistoryID}`).textContent = StartDate;
+        // document.getElementById(`endDateDisplay${VolunteerHistoryID}`).textContent = EndDate;
+        // document.getElementById(`eventNameDisplay${VolunteerHistoryID}`).textContent = EventName;
+        // document.getElementById(`eventDescriptionDisplay${VolunteerHistoryID}`).textContent = EventDescription;
+        // document.getElementById(`eventLocationDisplay${VolunteerHistoryID}`).textContent = EventLocation;
+
+
+        console.log("Values to Save: ", OrganizationName, StartDate, EndDate, EventName, EventDescription, EventLocation, VolunteerHistoryID);
+        formData = new FormData();
+        formData.append('action', 'editVolunteerHistory');
+        formData.append('VolunteerHistoryID', VolunteerHistoryID);
+        formData.append('OrganizationName', OrganizationName);
+        formData.append('StartDate', StartDate);
+        formData.append('EndDate', EndDate);
+        formData.append('EventName', EventName);
+        formData.append('EventDescription', EventDescription);
+        formData.append('EventLocation', EventLocation);
+
+
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  // You could show a message, refresh the page, etc.
+            // refresh the page
+            // location.reload();
+        })
+        .catch(error => {
+            // Handle error response
+            console.error('Error:', error);
+        });
+
+    }
+
+
+    function toggleEditMode(id, organizationName, startDate, endDate, eventName, eventDescription, eventLocation) {
+    const displayFields = document.querySelectorAll(`#card${id} span`);
+    const editFields = document.querySelectorAll(`#card${id} input, #card${id} textarea`);
+    const saveButton = document.getElementById(`saveButton${id}`);
+    
+    let updatedValues = {};
+    
+    displayFields.forEach(field => {
+    if (!field.id.includes('Location')) { // Skip fields with 'Location' in their ID
+        field.style.display = field.style.display === 'none' ? '' : 'none';
+    }
+});
+
+    // displayFields.forEach(field => field.style.display = field.style.display === 'none' ? '' : 'none');
+    
+    editFields.forEach(field => {
+        // Set up event listener for each editable field
+        field.addEventListener('input', (e) => {
+            updatedValues[field.id] = e.target.value;  // Update the value dynamically
+            console.log(updatedValues); // Debugging to log the updated values
+            console.log(field.id);
+            saveButton.setAttribute('onclick', `saveChanges(
+        "${updatedValues['organizationNameEdit' + id] || organizationName}",
+        "${updatedValues['startDateEdit' + id] || startDate}",
+        "${updatedValues['endDateEdit' + id] || endDate}",
+        "${updatedValues['eventNameEdit' + id] || eventName}",
+        "${updatedValues['eventDescriptionEdit' + id] || eventDescription}",
+        "${updatedValues['eventLocationEdit' + id] || eventLocation}",
+        ${id}
+    )`);
+        });
+
+        field.style.display = field.id.includes('Location') ? field.style.display : (field.style.display === 'none' ? '' : 'none');
+
+    });
+
+    // make the save button visible
+    saveButton.style.display = saveButton.style.display === 'none' ? '' : 'none';
+   
+}
+
+    function deleteVolunteerHistory(volunteerHistoryID, volunteerID) {
+        console.log('Deleting volunteer history...');
+    if (confirm('Are you sure you want to delete this volunteer history?')) {
+        // Prepare the data to send
+        const formData = new FormData();
+        formData.append('action', 'deleteVolunteerHistory');
+        formData.append('VolunteerHistoryID', volunteerHistoryID);
+        formData.append('VolunteerID', volunteerID);
+    
+        // Send the POST request using fetch
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  
+            window.location.reload();
+        })
+        .catch(error => {
+            // Handle error response
+            console.error('Error:', error);
+        });
+
+    }
+}
+
+    function addVolunteerHistory(VolunteerID, organization, startDate, endDate, eventName, eventDescription, eventCountry, eventCity, eventArea) {
+        console.log('Adding volunteer history...');
+        console.log('VolunteerID:', VolunteerID);
+
+
+        const formData = new FormData();
+        formData.append('action', 'addVolunteerHistory');
+        formData.append('volunteerOrganization', organization);
+        formData.append('volunteerStartDate', startDate);
+        formData.append('volunteerEndDate', endDate);
+        formData.append('EventName', eventName);
+        formData.append('EventDescription', eventDescription);
+        formData.append('EventCountry', eventCountry);
+        formData.append('EventCity', eventCity);
+        formData.append('EventArea', eventArea);
+        formData.append('VolunteerID', VolunteerID);
+
+
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  // You could show a message, refresh the page, etc.
+            // refresh the page
+            // location.reload();
+            // window.location.reload();
+        })
+
+        .catch(error => {
+            // Handle error response
+            console.error('Error:', error);
+        });
+
+
+    }
+
     function deleteContact(contactID, volunteerID) {
         console.log('Deleting contact...');
     if (confirm('Are you sure you want to delete this contact?')) {
@@ -386,6 +627,12 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
     // Append the new location box to the "additional-locations" div
     document.getElementById('additional-locations').appendChild(newLocation);
 }
+
+
+
+
+
+
 
 
 </script>

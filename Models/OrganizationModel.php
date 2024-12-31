@@ -10,6 +10,7 @@ class Organization extends User
     private $OrganizationDescription;
     private $OrganizationWebsite;
     private $OrganizationType;
+    private $Events= [];
 
     public function __construct($id = null)
     {
@@ -44,6 +45,125 @@ class Organization extends User
 
             $stmt->close();
         }
+    }
+    public function get_organization_id()
+    {
+        return $this->OrganizationID;
+    }
+    public function get_organization_description()
+    {
+        return $this->OrganizationDescription;
+    }
+    public function get_organization_website()
+    {
+        return $this->OrganizationWebsite;
+    }
+    public function get_organization_type()
+    {
+        return $this->OrganizationType;
+    }
+    public function get_organization_name()
+    {
+        return $this->FirstName;
+    }
+    public function set_organization_id($OrganizationID)
+    {
+        $this->OrganizationID = $OrganizationID;
+    }
+    public static function addEvent($OrganizationName, $EventID)
+    {
+        echo "now adding event to organization";
+        $conn = Database::getInstance()->getConnection();
+    
+        // Validate inputs
+        if (empty($OrganizationName)) {
+            echo "Organization name is required.";
+            return;
+        }
+        if (!is_int($EventID)) {
+            echo "EventID must be an integer. Given: ";
+            var_dump($EventID);
+            return;
+        }
+    
+        // Query to get OrganizationID
+        $query = "SELECT OrganizationID FROM Organization WHERE OrganizationName = ?";
+        $stmt = $conn->prepare($query);
+    
+        if (!$stmt) {
+            echo "Error preparing query: " . $conn->error;
+            return;
+        }
+    
+        $stmt->bind_param("s", $OrganizationName);
+        if (!$stmt->execute()) {
+            echo "Error executing query: " . $stmt->error;
+            return;
+        }
+    
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+    
+        if (!$row) {
+            echo "Organization with the given name not found.";
+            return;
+        }
+    
+        $OrganizationID = (int)$row['OrganizationID']; // Cast to int for safety
+        $stmt->close();
+    
+        // Check if the record already exists in Organization_Event
+        $query = "SELECT * FROM Organization_Event WHERE OrganizationID = ? AND EventID = ?";
+        $stmt = $conn->prepare($query);
+    
+        if (!$stmt) {
+            echo "Error preparing existence check query: " . $conn->error;
+            return;
+        }
+    
+        $stmt->bind_param("ii", $OrganizationID, $EventID);
+        if (!$stmt->execute()) {
+            echo "Error executing existence check query: " . $stmt->error;
+            return;
+        }
+    
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            echo "This OrganizationID and EventID combination already exists.";
+            return;
+        }
+        $stmt->close();
+    
+        // Insert into Organization_Event
+        $query = "INSERT INTO Organization_Event (OrganizationID, EventID) VALUES (?, ?)";
+        $stmt = $conn->prepare($query);
+    
+        if (!$stmt) {
+            echo "Error preparing insert query: " . $conn->error;
+            return;
+        }
+    
+        $stmt->bind_param("ii", $OrganizationID, $EventID);
+    
+        if ($stmt->execute()) {
+            echo "Event added to organization successfully.";
+        } else {
+            echo "Error adding event to organization: " . $stmt->error;
+        }
+    
+        $stmt->close();
+    }
+    
+    public static function getOrganizationIDByName($OrganizationName)
+    {
+        $conn = Database::getInstance()->getConnection();
+        $query = "SELECT OrganizationID FROM Organization WHERE OrganizationName = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $OrganizationName);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['OrganizationID'];
     }
 
     static public function create_organization(
