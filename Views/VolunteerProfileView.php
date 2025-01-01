@@ -107,9 +107,7 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
         <!-- Emergency Contacts Section -->
         <div class="section">
     <h2>Emergency Contacts</h2>
-    <form id="emergencyContactForm" action="VolunteerProfileView.php" method="POST" 
-      onsubmit="console.log('Form submitted'); return true;">
-    <input type="hidden" name="action" value="addEmergencyContact">
+    <form id="emergencyContactForm">
     <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
     <div class="form-row">
         <div>
@@ -121,24 +119,48 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
             <input type="text" id="ContactPhone" name="ContactPhone" required>
         </div>
     </div>
-    <button type="submit">Add Emergency Contact</button>
+    <button type="button" onclick="addEmergencyContact(
+        document.getElementById('ContactName').value, 
+        document.getElementById('ContactPhone').value, 
+        <?= $volunteer->getVolunteerID(); ?>
+    )">Add Emergency Contact</button>
 </form>
 
 
-    <div id="contactList">
-        <h3>Saved Contacts</h3>
-        <div id="contactsContainer" class="contact-cards">
-            <!-- Pre-populated dummy contacts -->
+<div id="contactList">
+    <h3>Saved Contacts</h3>
+    <div id="contactsContainer" class="contact-cards">
+        <!-- Pre-populated dummy contacts -->
+        <?php foreach ($volunteer->getEmergencyContacts() as $contact): ?>
+            <div class="contact-card" id="contactCard<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>">
+                <h4>
+                    <span id="contactNameDisplay<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>">
+                        <?= htmlspecialchars($contact->getName()); ?>
+                    </span>
+                    <input type="text" id="contactNameEdit<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>" value="<?= htmlspecialchars($contact->getName()); ?>" style="display: none;">
+                </h4>
+                <p>
+                    <span id="contactPhoneDisplay<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>">
+                        Phone: <?= htmlspecialchars($contact->getPhoneNumber()); ?>
+                    </span>
+                    <input type="text" id="contactPhoneEdit<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>" value="<?= htmlspecialchars($contact->getPhoneNumber()); ?>" style="display: none;">
+                </p>
+                <button onclick="deleteContact(<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>, <?= $volunteer->getVolunteerID(); ?>)">Remove</button>
+                <button onclick="toggleEditModeforEmergencyContacts( <?= $volunteer->getVolunteerID(); ?>
+                ,<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>, 
+                '<?= $contact->getName(); ?>',
+                '<?= $contact->getPhoneNumber(); ?>'
+                )">Edit</button>
 
-            <?php foreach ($volunteer->getEmergencyContacts() as $contact): ?>
-                <div class="contact-card">
-                    <h4><?= htmlspecialchars($contact->getName()); ?></h4>
-                    <p>Phone: <?= htmlspecialchars($contact->getPhoneNumber()); ?></p>
-                    <button onclick="deleteContact(<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>, <?= $volunteer->getVolunteerID(); ?>)">Remove</button>
-                </div>
-            <?php endforeach; ?>
-        </div>
+<button id="saveemergencycontact<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>" 
+    style="display:none;" 
+    onclick="update_emergency_contact()">
+    Save
+</button> 
+            </div>
+        <?php endforeach; ?>
     </div>
+</div>
 </div>
 
 
@@ -371,6 +393,154 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
 </body>
 </html>
 <script>
+
+
+    function addEmergencyContact($Name, $Phone, $VolunteerID) {
+        console.log('Adding emergency contact...');
+        console.log('Name:', $Name);
+        console.log('Phone:', $Phone);
+        console.log('VolunteerID:', $VolunteerID);
+
+        const formData = new FormData();
+        formData.append('action', 'addEmergencyContact');
+        formData.append('ContactName', $Name);
+        formData.append('ContactPhone', $Phone);
+        formData.append('VolunteerID', $VolunteerID);
+
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  // You could show a message, refresh the page, etc.
+            // refresh the page
+            // location.reload();
+        })
+        .catch(error => {
+            // Handle error response
+            console.error('Error:', error);
+        });
+    }
+
+
+      function toggleEditMode(id, organizationName, startDate, endDate, eventName, eventDescription, eventLocation) {
+    const displayFields = document.querySelectorAll(`#card${id} span`);
+    const editFields = document.querySelectorAll(`#card${id} input, #card${id} textarea`);
+    const saveButton = document.getElementById(`saveButton${id}`);
+    
+    let updatedValues = {};
+    
+    displayFields.forEach(field => {
+    if (!field.id.includes('Location')) { // Skip fields with 'Location' in their ID
+        field.style.display = field.style.display === 'none' ? '' : 'none';
+    }
+});
+
+    // displayFields.forEach(field => field.style.display = field.style.display === 'none' ? '' : 'none');
+    
+    editFields.forEach(field => {
+        // Set up event listener for each editable field
+        field.addEventListener('input', (e) => {
+            updatedValues[field.id] = e.target.value;  // Update the value dynamically
+            console.log(updatedValues); // Debugging to log the updated values
+            console.log(field.id);
+            saveButton.setAttribute('onclick', `saveChanges(
+        "${updatedValues['organizationNameEdit' + id] || organizationName}",
+        "${updatedValues['startDateEdit' + id] || startDate}",
+        "${updatedValues['endDateEdit' + id] || endDate}",
+        "${updatedValues['eventNameEdit' + id] || eventName}",
+        "${updatedValues['eventDescriptionEdit' + id] || eventDescription}",
+        "${updatedValues['eventLocationEdit' + id] || eventLocation}",
+        ${id}
+    )`);
+        });
+
+        field.style.display = field.id.includes('Location') ? field.style.display : (field.style.display === 'none' ? '' : 'none');
+
+    });
+
+    // make the save button visible
+    saveButton.style.display = saveButton.style.display === 'none' ? '' : 'none';
+   
+}
+function toggleEditModeforEmergencyContacts(volunteerID, id, ContactName, ContactPhone) {
+    console.log('Toggling edit mode for emergency contacts...');
+    const displayFields = document.querySelectorAll(`#contactCard${id} span`);
+    const editFields = document.querySelectorAll(`#contactCard${id} input`);
+    const saveButton = document.getElementById(`saveemergencycontact${id}`); // Unique save button for this contact
+    console.log("displayFields", displayFields);
+    console.log("editFields", editFields);
+    console.log("saveButton", saveButton);
+
+    let updatedValues = {};
+
+    // Toggle the display of display fields and edit fields
+    displayFields.forEach(field => {
+        field.style.display = field.style.display === 'none' ? '' : 'none';
+    });
+
+    editFields.forEach(field => {
+        console.log("field is", field);
+        // Add event listener for each editable field to update the values dynamically
+        field.addEventListener('input', (e) => {
+            updatedValues[field.id] = e.target.value;  // Update the value dynamically
+            console.log(updatedValues); // Debugging to log the updated values
+
+            // Update the save button's onclick with the updated values
+            saveButton.setAttribute('onclick', `update_emergency_contact(
+                ${volunteerID},
+                "${updatedValues['contactNameEdit' + id] || ContactName}",
+                "${updatedValues['contactPhoneEdit' + id] || ContactPhone}",
+                ${id}
+            )`);
+        });
+
+        field.style.display = field.style.display === 'none' ? '' : 'none';
+    });
+
+    // Toggle the save button's visibility
+    if (saveButton) {
+        saveButton.style.display = saveButton.style.display === 'none' ? '' : 'block';
+    }
+}
+
+
+
+
+function update_emergency_contact($VolunteerID, $Name, $Phone, $ContactID) {
+    console.log('Updating emergency contact...');
+    console.log($Name, $Phone, $ContactID);
+    // Get the updated values
+    console.log($Name, $Phone, $ContactID);
+    formData = new FormData();
+    formData.append('action', 'updateEmergencyContact');
+    formData.append('VolunteerID', $VolunteerID);
+    formData.append('ContactID', $ContactID);
+    formData.append('Name', $Name);
+    formData.append('Phone', $Phone);
+
+    // Send the updated values to the server
+    fetch('VolunteerProfileView.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())  // You can handle the response as needed
+    .then(data => {
+        // Handle success response (optional)
+        console.log(data);  // You could show a message, refresh the page, etc.
+    })
+    .catch(error => {
+        // Handle error response
+        console.error('Error:', error);
+    });
+}
+{
+
+    
+}
+
 function update_notification_settings() {
     console.log('Updating notification settings...');
     // Get the checked checkboxes
@@ -498,46 +668,7 @@ function getCheckedSkillTypes() {
     }
 
 
-    function toggleEditMode(id, organizationName, startDate, endDate, eventName, eventDescription, eventLocation) {
-    const displayFields = document.querySelectorAll(`#card${id} span`);
-    const editFields = document.querySelectorAll(`#card${id} input, #card${id} textarea`);
-    const saveButton = document.getElementById(`saveButton${id}`);
-    
-    let updatedValues = {};
-    
-    displayFields.forEach(field => {
-    if (!field.id.includes('Location')) { // Skip fields with 'Location' in their ID
-        field.style.display = field.style.display === 'none' ? '' : 'none';
-    }
-});
-
-    // displayFields.forEach(field => field.style.display = field.style.display === 'none' ? '' : 'none');
-    
-    editFields.forEach(field => {
-        // Set up event listener for each editable field
-        field.addEventListener('input', (e) => {
-            updatedValues[field.id] = e.target.value;  // Update the value dynamically
-            console.log(updatedValues); // Debugging to log the updated values
-            console.log(field.id);
-            saveButton.setAttribute('onclick', `saveChanges(
-        "${updatedValues['organizationNameEdit' + id] || organizationName}",
-        "${updatedValues['startDateEdit' + id] || startDate}",
-        "${updatedValues['endDateEdit' + id] || endDate}",
-        "${updatedValues['eventNameEdit' + id] || eventName}",
-        "${updatedValues['eventDescriptionEdit' + id] || eventDescription}",
-        "${updatedValues['eventLocationEdit' + id] || eventLocation}",
-        ${id}
-    )`);
-        });
-
-        field.style.display = field.id.includes('Location') ? field.style.display : (field.style.display === 'none' ? '' : 'none');
-
-    });
-
-    // make the save button visible
-    saveButton.style.display = saveButton.style.display === 'none' ? '' : 'none';
-   
-}
+  
 
     function deleteVolunteerHistory(volunteerHistoryID, volunteerID) {
         console.log('Deleting volunteer history...');
@@ -609,6 +740,8 @@ function getCheckedSkillTypes() {
 
     function deleteContact(contactID, volunteerID) {
         console.log('Deleting contact...');
+        console.log('ContactID:', contactID);
+
     if (confirm('Are you sure you want to delete this contact?')) {
         // Prepare the data to send
         const formData = new FormData();
@@ -625,7 +758,7 @@ function getCheckedSkillTypes() {
         .then(data => {
             // Handle success response (optional)
             console.log(data);  
-            window.location.reload();
+            // window.location.reload();
         })
         .catch(error => {
             // Handle error response

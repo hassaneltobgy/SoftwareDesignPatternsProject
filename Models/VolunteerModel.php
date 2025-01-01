@@ -208,7 +208,11 @@ class Volunteer extends User {
     
 
     public function addEmergencyContact($Name, $PhoneNumber) {
-        $EmergencyContactID= EmergencyContact::create($Name, $PhoneNumber);
+        echo "now calling add emergency contact";
+        $EmergencyContact= EmergencyContact::create($Name, $PhoneNumber);
+        $EmergencyContactID = $EmergencyContact->getID();
+        echo "now inserting emergency contact with id $EmergencyContactID";
+
 
         $query = "INSERT INTO EmergencyContact_Volunteer (EmergencyContactID, VolunteerID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
@@ -221,16 +225,25 @@ class Volunteer extends User {
     }
 
     public function removeEmergencyContact($EmergencyContactID) {
+        echo "now removing emergency contact with id $EmergencyContactID";
         $query = "DELETE FROM EmergencyContact_Volunteer WHERE EmergencyContactID = ? AND VolunteerID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("ii", $EmergencyContactID, $this->VolunteerID);
         $stmt->execute();
     }
 
-    public function updateEmergencyContact($oldName, $oldPhoneNumber, $newName, $newPhoneNumber) {
-        $EmergencyContactID = EmergencyContact::getEmergencyContactId($oldName, $oldPhoneNumber);
-        $emergencycontact = new EmergencyContact($EmergencyContactID);
-        $emergencycontact->update($newName, $newPhoneNumber);
+    public function updateEmergencyContact($emergencyContactIDtobedeleted, $emergencyContact) {
+        // overwrite the old emergency contact with the new one in the database
+        $query = "DELETE FROM EmergencyContact_Volunteer WHERE VolunteerID = ? AND EmergencyContactID = ?";
+        $stmt = $this->conn->prepare($query);
+        echo "emergency contact id to be deleted is " . $emergencyContactIDtobedeleted;
+        echo "volunteer id is " . $this->VolunteerID;
+        
+        $stmt->bind_param("ii", $this->VolunteerID, $emergencyContactIDtobedeleted);
+        $stmt->execute();
+        echo "Name is " . $emergencyContact->getName() . " and phone number is " . $emergencyContact->getPhoneNumber();
+        $this->addEmergencyContact($emergencyContact->getName(), $emergencyContact->getPhoneNumber());
+
     }
 
     public static function deletebyUserID($UserID) {

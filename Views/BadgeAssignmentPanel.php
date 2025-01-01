@@ -111,6 +111,8 @@ function logout() {
 </div>
 
 <script>
+
+
 function openModal(badge_id, BadgeName, VolunteerName, VolunteerID) {
     console.log(badge_id, BadgeName, VolunteerName, VolunteerID);
     const modal = document.getElementById("editModal");

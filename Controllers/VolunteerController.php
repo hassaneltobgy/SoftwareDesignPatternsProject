@@ -164,6 +164,12 @@ class VolunteerController {
         $user = new User($UserID);
         $user->update_Notification_Types($notificationTypes);
     }   
+
+    public function updateEmergencyContact($VolunteerID, $ContactID, $ContactName, $ContactPhone) {
+        $emergencyContact = EmergencyContact::create($ContactName, $ContactPhone);
+        $volunteer = new Volunteer($VolunteerID);  
+        $volunteer->updateEmergencyContact($ContactID, $emergencyContact); 
+    }
 }
 
 
@@ -220,9 +226,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     
     case 'addEmergencyContact':
+        echo "I HAVE RECEIVED ACTION ADD EMERGENCY CONTACT";
         $Name = $_POST['ContactName'];
         $volunteerID = $_POST['VolunteerID'];
         $PhoneNumber = $_POST['ContactPhone'];
+        echo "now calling addEmergencyContact from controller";
         $VolunteerController->addEmergencyContact($Name, $PhoneNumber, $volunteerID);
 
         break;
@@ -270,6 +278,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $UserID = $_POST['UserID'];
         $notificationTypes = $_POST['notificationTypes'];
         $VolunteerController->updateNotificationSettings($UserID, $notificationTypes);
+        break;
+
+    case 'updateEmergencyContact':
+        echo "updateEmergencyContact";
+        $VolunteerController->updateEmergencyContact($_POST['VolunteerID'], $_POST['ContactID'], $_POST['Name'], $_POST['Phone']);
         break;
     }
 }

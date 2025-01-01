@@ -28,6 +28,9 @@ public function getPhoneNumber() {
 public function setPhoneNumber($PhoneNumber) {
     $this->PhoneNumber = $PhoneNumber;
 }
+public function getID() {
+    return $this->EmergencyContactID;
+}
 
 public static function create ($Name, $PhoneNumber) {
     $conn = Database::getInstance()->getConnection();
@@ -40,7 +43,8 @@ public static function create ($Name, $PhoneNumber) {
     $row = $result->fetch_assoc();
     $stmt->close();
     if ($row) {
-        return $row['EmergencyContactID'];
+        $emergencyContact = new EmergencyContact($row['EmergencyContactID'], $row['EmergencyContactName'], $row['EmergencyContactPhone']);
+        return $emergencyContact;
     }
 
     $query = "INSERT INTO EmergencyContact (EmergencyContactName, EmergencyContactPhone) VALUES (?, ?)";
@@ -48,7 +52,9 @@ public static function create ($Name, $PhoneNumber) {
     $stmt->bind_param('ss', $Name, $PhoneNumber);
     $stmt->execute();
     $stmt->close();
-    return $conn->insert_id;
+    $emergencyContact = new EmergencyContact($conn->insert_id, $Name, $PhoneNumber);
+    return $emergencyContact;
+
 
 
 }
