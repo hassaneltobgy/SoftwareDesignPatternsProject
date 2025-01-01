@@ -350,10 +350,11 @@ class User {
 
 
 
-    public function addLocation($AddressID) {
+    public function addLocation($AddressID, $UserID) {
+        $this->conn = Database::getInstance()->getConnection();
         $query = "INSERT INTO User_Address (UserID, AddressID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("ii", $this->UserID, $AddressID);
+        $stmt->bind_param("ii", $UserID, $AddressID);
         
         return $stmt->execute();
     }

@@ -49,18 +49,63 @@ class VolunteerController {
     }
 
 
-    public function addLocation($countries, $cities, $areas, $volunteerID, $userid)
-    {
+    public function addLocation($areas, $countries, $cities, $volunteerID, $userid)
+{
+    // Check if $areas is already an array
+    if (is_array($areas)) {
+        echo "Now in addLocation, areas are: ";
+        print_r($areas);  // Print the array for debugging
+
         $Volunteer = new Volunteer();
-       for ($i = 0; $i < count($countries); $i++) {
-        echo "country added is " . $countries[$i];
-        echo "city added is " . $cities[$i];
-        echo "area added is " . $areas[$i];
-        echo "volunteer id is " . $volunteerID;
-        echo "user id is " . $userid;
-            $Volunteer->update(country:$countries[$i], city:$cities[$i], area:$areas[$i], VolunteerID:$volunteerID, UserID:$userid);
-        }   
+
+        // Process the areas array
+        foreach ($areas as $area) {
+            // Get the ID of the area
+            $areaID = Location::getLocationID($area);
+            echo "AreaID is " . $areaID;
+            if ($areaID == null) {
+                echo "AreaID is null";
+                // get index of the area in the array
+                $index = array_search($area, $areas);
+                $location = Location::create($countries[$index], null);
+                $countryID = $location->AddressID;
+
+                $location = Location::create($cities[$index], $countryID);
+                $cityID = $location->AddressID;
+
+                $location = Location::create($area, $cityID);
+                $areaID = $location->AddressID;
+
+
+               
+            }
+            $Volunteer->addLocation($areaID, $userid);
+        }
+    } else {
+        // If $areas is not an array, decode it (it must be a JSON string)
+        echo "Raw areas received: " . $areas . "<br>"; // Print raw data for debugging
+        $areas = json_decode($areas, true); // Decode the JSON string into an array
+
+        if (is_array($areas)) {
+            echo "Decoded areas are: ";
+            print_r($areas); // Print the decoded array for debugging
+
+            $Volunteer = new Volunteer();
+
+            // Process the decoded array
+            foreach ($areas as $area) {
+                // Get the ID of the area
+                $areaID = Location::getLocationID($area);
+                echo "AreaID is " . $areaID;
+                $Volunteer->addLocation($areaID, $userid);
+            }
+        } else {
+            echo "Error: Areas is not a valid JSON string or is empty!";
+        }
     }
+}
+
+    
 
     public function deleteLocation($id, $userID) {
         $Volunteer = new Volunteer();
@@ -170,11 +215,127 @@ class VolunteerController {
         $volunteer = new Volunteer($VolunteerID);  
         $volunteer->updateEmergencyContact($ContactID, $emergencyContact); 
     }
+
+    public function insertCountriesIntoDB($countries) {
+        set_time_limit(300); // Increase the maximum execution time to 5 minutes
+    foreach ($countries as $country) {
+        $countryID = Location::getLocationID($country);
+        if ($countryID == null) {
+            $location= Location::create(Name: $country, ParentID:null);
+            $countryID = $location->AddressID;
+            
+            // now get the corresponding city using the same api 
+            $apiUrl = "https://www.universal-tutorial.com/api/states/$country";
+            $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY"; // Replace with your actual token
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Authorization: Bearer $token",
+                "Accept: application/json"
+            ]);
+
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);  // Disable peer verification
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            if ($response === false) {
+                echo "Error fetching cities for $country.";
+                continue;
+            }
+            $cities = json_decode($response, true);
+            if ($cities === null) {
+                echo "Error decoding cities for $country. Invalid JSON response.";
+                continue;
+            }
+            $cityNames= array_map(function($state) {
+                return $state['state_name']; // Extracting only the state name
+            }, $cities);
+            $cityNames = array_unique($cityNames); // Remove duplicates
+            
+
+            foreach ($cityNames as $city) {
+                $cityID = Location::getLocationID($city);
+                if ($cityID == null) {
+                    $location = Location::create(Name:$city, ParentID:$countryID);
+                    $cityID = $location->AddressID;
+            
+                    // Now get the corresponding area using the same API 
+                    $apiUrl = "https://www.universal-tutorial.com/api/cities/$city";
+                    $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY"; // Replace with your actual token
+            
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $apiUrl);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        "Authorization: Bearer $token",
+                        "Accept: application/json"
+                    ]);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);  // Disable peer verification
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
+                    $response = curl_exec($ch);
+            
+                    // Check for curl error
+                    if ($response === false) {
+                        echo "Error fetching areas for $city: " . curl_error($ch);
+                        curl_close($ch);
+                        continue;
+                    }
+                    curl_close($ch);
+            
+                    // Output the raw response for debugging
+                    echo "Raw response for $city: " . $response . "<br>";
+            
+                    // Decode the response into an associative array
+                    $areas = json_decode($response, true);
+            
+                    // Check if the response is valid
+                    if ($areas === null) {
+                        echo "Error decoding areas for $city. Invalid JSON response.";
+                        continue;
+                    }
+            
+                    // Check if $areas is an array and has elements
+                    if (is_array($areas) && !empty($areas)) {
+                        $areaNames = array_map(function($area) {
+                            return $area['city_name']; // Extracting only the area name
+                        }, $areas);
+            
+                       
+            
+                        // Remove duplicates
+                        $areaNames = array_unique($areaNames);
+            
+                        // Now process the area names
+                        foreach ($areaNames as $area) {
+                            $areaID = Location::getLocationID($area);
+                            if ($areaID == null) {
+                                $areaID = Location::create(Name:$area, ParentID:$cityID);
+                            }
+                        }
+                    } else {
+                        echo "No areas found for $city.";
+                    }
+                }
+            }
+            
+            
+
+        }
+    }
 }
+    
+    }
+
+
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+
     $VolunteerController = new VolunteerController();
+
     echo "received action";
     echo "action is " . $_POST['action'];
     switch ($_POST['action']) {
@@ -216,12 +377,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         break;
     
     case 'addLocation':
+        echo "I HAVE RECEIVED ACTION ADD LOCATION";
         $userid = $_POST['UserID'];
         $volunteerID = $_POST['VolunteerID'];
-        $countries = $_POST['Country']?? []; // Array of countries
-        $cities = $_POST['City']?? []; // Array of cities
-        $areas = $_POST['Area']?? []; // Array of areas
-        $VolunteerController->addLocation($countries, $cities, $areas, $volunteerID, $userid);
+        $areas = $_POST['areas']?? [];
+        $countries = $_POST['countries']?? [];
+        $cities = $_POST['cities']?? [];
+
+        $VolunteerController->addLocation($areas,$countries, $cities, $volunteerID, $userid);
         break;
 
     

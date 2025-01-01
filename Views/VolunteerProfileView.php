@@ -2,7 +2,64 @@
 require_once '../Controllers/VolunteerController.php';
 
 
+
+$apiUrl = "https://www.universal-tutorial.com/api/countries/";
+$token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY"; // Replace with your actual token
+
+
+// $ch = curl_init();
+// curl_setopt($ch, CURLOPT_URL, $apiUrl);
+// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+// curl_setopt($ch, CURLOPT_HTTPHEADER, [
+//     "Authorization: Bearer $token",
+//     "Accept: application/json"
+// ]);
+
+// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);  // Disable peer verification
+// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
+
+// // Enable cURL debugging
+// // curl_setopt($ch, CURLOPT_VERBOSE, true);
+// $response = curl_exec($ch);
+
+// // Check for cURL errors
+// if(curl_errno($ch)) {
+//     echo 'cURL Error: ' . curl_error($ch);
+//     exit;
+// }
+
+// // Get the HTTP status code
+// $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+// echo "HTTP Status Code: $http_code";
+
+// // Close the cURL resource
+// curl_close($ch);
+
+// if ($response === false) {
+//     echo "Error fetching countries in view.";
+//     exit;
+// }
+// $countries = json_decode($response, true); // Decode JSON response
+
+// // Check if countries data was retrieved
+// if (!$countries) {
+//     echo "Error: Invalid JSON response.";
+//     exit;
+// }
+
+// $countryNames = array_map(function($country) {
+//     return $country['country_name']; // Extracting only the country name
+// }, $countries);
+
+// // Remove duplicates from the country names array
+// $countryNames = array_unique($countryNames);
+
+
+
 $controller = new VolunteerController();
+
+
+// $controller->insertCountriesIntoDB($countryNames);
 // assuming that the controller has a method to get the volunteer id from the session
 $dummy_id = 49;
 $volunteer = $controller->getVolunteerbyId($dummy_id);
@@ -69,35 +126,50 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
                 </form>
 
 
-                <form action="VolunteerProfileView.php" method="POST">
-                <input type="hidden" name="action" value="addLocation">
-                <input type="hidden" name="UserID" value="<?php echo $volunteer->getUserID(); ?>">
-                <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
-                
-                <div class="locations-wrapper">
-                <?php if (!empty($volunteer->getLocations($volunteer->UserID))): ?>
-                    <?php foreach ($volunteer->getLocations($volunteer->UserID) as $index => $location): ?>
-                        <div class="location-box">
+                <form action="VolunteerProfileView.php" >
+    <input type="hidden" name="UserID" value="<?php echo $volunteer->getUserID(); ?>">
+    <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
 
-                        <button type="button" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline;" onclick="deleteLocation(<?= $location['ID']; ?>, <?= $volunteer->getUserID(); ?>)">Delete</button>
-
-                            <p><strong>Country:</strong> <?php echo htmlspecialchars($location['Country']); ?></p>
-                            <p><strong>City:</strong> <?php echo htmlspecialchars($location['City']); ?></p>
-                            <p><strong>Area:</strong> <?php echo htmlspecialchars($location['Area']); ?></p>
-                        </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p>No locations added yet.</p>
-                    <?php endif; ?>
+    <div class="locations-wrapper">
+        <?php if (!empty($volunteer->getLocations($volunteer->UserID))): ?>
+            <?php foreach ($volunteer->getLocations($volunteer->UserID) as $index => $location): ?>
+                <div class="location-box">
+                    <button type="button" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline;" onclick="deleteLocation(<?= $location['ID']; ?>, <?= $volunteer->getUserID(); ?>)">Delete</button>
+                    <p><strong>Country:</strong> <?php echo htmlspecialchars($location['Country']); ?></p>
+                    <p><strong>City:</strong> <?php echo htmlspecialchars($location['City']); ?></p>
+                    <p><strong>Area:</strong> <?php echo htmlspecialchars($location['Area']); ?></p>
                 </div>
-                <!-- Add location button -->
-                 <div id="additional-locations"></div>
-                <button type="button" onclick="addLocation()">Add Location</button>
-                
-                <button type="submit">Save Locations</button>
-                
-            </form>
-                            
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>No locations added yet.</p>
+        <?php endif; ?>
+    </div>
+
+    <!-- Add location section -->
+    <div id="additional-locations">
+        <!-- Initial location dropdowns -->
+        <div class="location-box">
+            <select class="country-dropdown" name="locations[0][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+                <option value="">Select Country</option>
+            </select>
+            <select class="city-dropdown" name="locations[0][city]" onchange="handleCityChange(this, this.nextElementSibling)">
+                <option value="">Select City</option>
+            </select>
+            <select class="area-dropdown" name="locations[0][area]">
+                <option value="">Select Area</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="button" onclick="addLocation()">Add Location</button>
+    <button type="button" onclick="saveLocations(
+    <?= $volunteer->getUserID(); ?>,
+        <?= $volunteer->getVolunteerID(); ?>,
+        document.querySelectorAll('.area-dropdown')
+    )">Save Locations</button>
+</form>
+
+
 
                 
 
@@ -394,6 +466,194 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
 </html>
 <script>
 
+function saveLocations(UserID, volunteerID, areaDropdowns) {
+    const areas = [];
+    const formData = new FormData();
+    formData.append('action', 'addLocation');
+    formData.append('VolunteerID', volunteerID);
+
+    // Loop through the area dropdowns and only add the selected areas
+    areaDropdowns.forEach((areaDropdown, index) => {
+        const selectedArea = areaDropdown.value;
+        if (selectedArea) {
+            areas.push(selectedArea); // Add only the selected area
+        }
+    });
+
+    // Append the selected areas as an array to the form data
+    formData.append('areas', JSON.stringify(areas));
+
+    // Send the areas to the server
+    fetch('VolunteerProfileView.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())  // You can handle the response as needed
+    .then(data => {
+        // Handle success response (optional)
+        console.log(data);  // You could show a message, refresh the page, etc.
+        // location.reload(); // Uncomment if you want to refresh the page after saving
+    })
+    .catch(error => {
+        // Handle error response
+        console.error('Error:', error);
+    });
+}
+
+
+
+    async function fetchAccessToken() {
+    const url = "https://www.universal-tutorial.com/api/getaccesstoken";
+    const headers = {
+        "Accept": "application/json",
+        "api-token": "rJyS6hnaXPbetOq6WvJIW16k3ZmqiXXfo4sAyGyNvbAbPar2bNqTcxKmGyVTm2bFTso", // Replace with your actual API token
+        "user-email": "faridaelhussieny@gmail.com" // Replace with your actual email
+    };
+    
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: headers
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch access token");
+        }
+
+        const data = await response.json();
+        console.log("Access Token:", data.auth_token); // Assuming the token is returned as 'auth_token'
+        return data.auth_token; // Return the token for further use
+    } catch (error) {
+        console.error("Error fetching access token:", error);
+    }
+}
+
+fetchAccessToken();
+
+async function fetchCountries() {
+    try {
+        const response = await fetch("https://www.universal-tutorial.com/api/countries/", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY", // Replace with your actual token
+                "Accept": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error fetching countries');
+        }
+
+        const countries = await response.json(); // Assuming API returns an array of countries
+        const countryList = countries.map(country => country.country_name).sort();
+
+        // Populate all country dropdowns
+        document.querySelectorAll('.country-dropdown').forEach(dropdown => {
+            dropdown.innerHTML = '<option value="">Select Country</option>';
+            countryList.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                dropdown.appendChild(option);
+            });
+        });
+    } catch (error) {
+        console.error('Error fetching countries:', error);
+        alert('Could not fetch countries. Please try again.');
+    }
+}
+
+// Call this function to load countries when the page is ready
+document.addEventListener('DOMContentLoaded', fetchCountries);
+
+
+
+// Handle country change to fetch cities
+// Handle country change to fetch states (cities in your naming convention)
+async function handleCountryChange(countryDropdown, cityDropdown, areaDropdown) {
+    const selectedCountry = countryDropdown.value; // Use country name (e.g., "United States")
+    if (!selectedCountry) return;
+
+    try {
+        console.log('Fetching states (cities) for', selectedCountry);
+
+        // Fetch states (cities) for the selected country
+        const response = await fetch(`https://www.universal-tutorial.com/api/states/${selectedCountry}`, {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY", // Replace with your actual token
+                'Accept': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`State (city) API returned status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const states = data; // The response returns states directly
+
+        // Populate the city dropdown (states in your case)
+        cityDropdown.innerHTML = '<option value="">Select City</option>';
+        states.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state.state_name; // Use the correct field from API response
+            option.textContent = state.state_name;
+            cityDropdown.appendChild(option);
+        });
+
+        // Clear the area dropdown since it's dependent on the city
+        areaDropdown.innerHTML = '<option value="">Select Area</option>';
+    } catch (error) {
+        console.error('Error fetching states (cities):', error);
+        alert('Could not fetch cities. Please try again.');
+    }
+}
+
+
+
+
+// Handle city change to fetch areas
+// Handle city change to fetch areas
+async function handleCityChange(cityDropdown, areaDropdown) {
+    const selectedCity = cityDropdown.value; // City is now a state in your naming convention
+    if (!selectedCity) return;
+
+    try {
+        console.log('Fetching areas for city (state):', selectedCity);
+
+        // Fetch areas (from cities API) for the selected city (state)
+        const response = await fetch(`https://www.universal-tutorial.com/api/cities/${selectedCity}`, {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY", // Replace with your actual token
+                'Accept': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Area API returned status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const areas = data; // The response returns areas directly
+
+        // Populate the area dropdown
+        areaDropdown.innerHTML = '<option value="">Select Area</option>';
+        areas.forEach(area => {
+            const option = document.createElement('option');
+            option.value = area.city_name; // Use the correct field from API response
+            option.textContent = area.city_name;
+            areaDropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching areas:', error);
+        alert('Could not fetch areas. Please try again.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', fetchCountries);
 
     function addEmergencyContact($Name, $Phone, $VolunteerID) {
         console.log('Adding emergency contact...');
@@ -423,6 +683,7 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
             console.error('Error:', error);
         });
     }
+
 
 
       function toggleEditMode(id, organizationName, startDate, endDate, eventName, eventDescription, eventLocation) {
@@ -865,18 +1126,26 @@ function getCheckedSkillTypes() {
         }
     });
     function addLocation() {
-    console.log('Adding location...');
-    // Create a new location box
-    const newLocation = document.createElement('div');
-    newLocation.classList.add('location-box');
-    newLocation.innerHTML = `
-        <p><strong>Country:</strong> <input type="text" name="Country[]" required></p>
-        <p><strong>City:</strong> <input type="text" name="City[]" required></p>
-        <p><strong>Area:</strong> <input type="text" name="Area[]" required></p>
+    const additionalLocations = document.getElementById('additional-locations');
+    const locationIndex = additionalLocations.children.length;
+
+    const locationBox = document.createElement('div');
+    locationBox.className = 'location-box';
+
+    locationBox.innerHTML = `
+        <select class="country-dropdown" name="locations[${locationIndex}][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+            <option value="">Select Country</option>
+        </select>
+        <select class="city-dropdown" name="locations[${locationIndex}][city]" onchange="handleCityChange(this, this.nextElementSibling)">
+            <option value="">Select City</option>
+        </select>
+        <select class="area-dropdown" name="locations[${locationIndex}][area]">
+            <option value="">Select Area</option>
+        </select>
     `;
 
-    // Append the new location box to the "additional-locations" div
-    document.getElementById('additional-locations').appendChild(newLocation);
+    additionalLocations.appendChild(locationBox);
+    fetchCountries(); // Populate countries for the new dropdowns
 }
 
 

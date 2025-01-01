@@ -19,9 +19,8 @@ class Location
     
     public static function create($AddressID= null, $Name= null, $ParentID= null)
     {
-        if ($AddressID !== null) {
         $conn = Database::getInstance()->getConnection();
-    
+        if ($AddressID !== null) {
         // Check if the location already exists
         $checkQuery = "SELECT AddressID FROM Location WHERE AddressID = ? AND Name = ? AND ParentID = ?";
         $checkStmt = $conn->prepare($checkQuery);
@@ -41,14 +40,13 @@ class Location
     }
     
         // If no matching record exists, insert a new one
-        $query = "INSERT INTO Location (AddressID, Name, ParentID) VALUES (?, ?, ?)";
+        $query = "INSERT INTO Location (Name, ParentID) VALUES (?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param('isi', $AddressID, $Name, $ParentID);
+        $stmt->bind_param('si', $Name, $ParentID);
     
         if ($stmt->execute()) {
-            $location = new Location($AddressID, $Name, $ParentID);
-            $location->AddressID = $conn->insert_id;
-    
+            $location = new Location($conn->insert_id, $Name, $ParentID);
+            // echo "Location created successfully $Name";
             return $location; // Return the new Location object
         }
         else {
