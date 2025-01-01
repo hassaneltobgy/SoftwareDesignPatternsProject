@@ -401,7 +401,7 @@ class User {
         $USER_NAME,
         $PASSWORD_HASH,
         $userType = null,
-        $privileges = [],   
+        $privileges = null,   
         $locations =[]
     ) {
         echo("Updating user with ID: $UserID");
@@ -415,7 +415,10 @@ class User {
             $this->conn = Database::getInstance()->getConnection();
         }
         $this->UserID = $UserID;
-        $this->update_privilege($privileges);
+        if ($privileges !== null) {
+            echo "updating privileges";
+            $this->update_privilege($privileges);
+        }
         $this->FirstName = $FirstName;
         $this->LastName = $LastName;
         $this->Email = $Email;

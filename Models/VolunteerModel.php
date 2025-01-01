@@ -4,6 +4,7 @@ require_once 'BadgeDecorator.php';
 require_once 'EmergencyContactModel.php';
 require_once 'VolunteerHistoryModel.php';
 require_once 'Event.php';
+require_once 'SkillsModel.php';
 class Volunteer extends User {
     public $VolunteerID;   
     public $UserID; 
@@ -281,7 +282,7 @@ class Volunteer extends User {
     public function getUserID() {
         // get user id from volunteer id
         return $this->UserID;
-        
+
     }
     public function get_hours_contributed() {
         return $this->hours_contributed;
@@ -296,7 +297,7 @@ class Volunteer extends User {
         return $this->volunteer_history;
     }
     public function get_volunteer_badge() {
-        return $this->badge->get_title();
+        return $this->badge;
     }
     public function getFirstName() {
         return $this->FirstName;
@@ -352,8 +353,8 @@ class Volunteer extends User {
         $USER_NAME = null,
         $password = null,
         $privileges = null,
-        $hours_contributed = 0,
-        $NumberOfEventsAttended = 0,
+        $hours_contributed = null,
+        $NumberOfEventsAttended = null,
         $badge_name = null,
         $country = null,
         $city = null,
@@ -375,8 +376,8 @@ class Volunteer extends User {
         }
         $volunteerData= $this->get_volunteer_by_id($this->VolunteerID);
 
-        $this->hours_contributed = $hours_contributed;
-        $this->NumberOfEventsAttended = $NumberOfEventsAttended;
+        $this->hours_contributed = $hours_contributed?? $volunteerData->hours_contributed;
+        $this->NumberOfEventsAttended = $NumberOfEventsAttended?? $volunteerData->NumberOfEventsAttended;
         $this->FirstName = $FirstName?? $volunteerData->FirstName;
         $this->LastName = $LastName?? $volunteerData->LastName;
         $this->Email = $Email?? $volunteerData->Email;
@@ -410,6 +411,7 @@ class Volunteer extends User {
             $badge_name = "Starter Badge";
         }
         $badge_id = VolunteerBadge::getBadgeIdByName($badge_name);
+        echo "now updating volunteer with values of hours contributed $hours_contributed and number of events attended $NumberOfEventsAttended and badge id $badge_id";
 
         $stmt->bind_param(
             "sssssssiiii",
@@ -771,7 +773,6 @@ class Volunteer extends User {
         $query = "SELECT VolunteerBadgeID FROM volunteer WHERE VolunteerID = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
      
-        echo "volunteer id is $this->VolunteerID";
         $stmt->bind_param("i", $this->VolunteerID);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -781,7 +782,6 @@ class Volunteer extends User {
             echo "No badge assigned to this volunteer.";
             return null; // No badge assigned
         }
-       echo "badge id is $badge_id   ";
         $query = "SELECT title FROM VolunteerBadge WHERE badge_id = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
@@ -793,14 +793,11 @@ class Volunteer extends User {
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         $badge_title = $row['title'];
-        echo "badge title is $badge_title ";
         if (!$row) {
             return null; // Badge not found
         }
         $baseBadge = new StarterBadgeDecorator($badge_id);
-        echo "now will switch";
         // Step 4: Apply decorators based on badge hierarchy
-        echo "switching.. badge title is $badge_title  ";
         switch ($badge_title) {
             
             case 'Leader Badge':
@@ -818,6 +815,7 @@ class Volunteer extends User {
                     )
                 );
             case 'Expert Badge':
+                echo "now returning expert badge";
                 return new ExpertBadgeDecorator(
                     new AdvancedBadgeDecorator($baseBadge)
                 );
@@ -837,10 +835,7 @@ class Volunteer extends User {
     
 
     public function Update_badge($badge_name) {
-        echo "updating badge \n";
-        echo "volunteer id is $this->VolunteerID \n";
-        echo "badge name is $badge_name \n";
-
+   
         $badgeId = $this->getBadgeIDfromName($badge_name);
         $query = "UPDATE Volunteer SET VolunteerBadgeID = ? WHERE VolunteerID = ?";
         $stmt = $this->conn->prepare($query);

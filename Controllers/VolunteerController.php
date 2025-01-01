@@ -44,6 +44,9 @@ class VolunteerController {
     
     }
 
+    public function getBadgeIdByName($badge_name) {
+        return VolunteerBadge::getBadgeIdByName($badge_name);
+    }
 
 
     public function addLocation($countries, $cities, $areas, $volunteerID, $userid)

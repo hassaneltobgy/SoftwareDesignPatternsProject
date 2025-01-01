@@ -55,7 +55,14 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
                 <label>Number of Events Attended:</label>
                 <input type="number" name="NumberOfEventsAttended" value="<?php echo $volunteer->get_NumberOfEventsAttended(); ?>" required>
                 <label>Badge:</label>
-                <input type="text" name="badge" value ="<?php echo $volunteer->get_volunteer_badge(); ?>" readonly>
+                <div>
+                <label for="badge">Badge Name</label>
+                <input type="text" name="badge" value="<?php echo $volunteer->get_volunteer_badge()->get_title(); ?>" readonly>
+            </div>
+            <div>
+                <label for="badgeScore">Badge Score</label>
+                <input type="text" name="badgeScore" value="<?php echo $volunteer->get_volunteer_badge()->calc_score(); ?>" readonly>
+            </div>
 
 
                 <button type="submit">Save Profile</button>

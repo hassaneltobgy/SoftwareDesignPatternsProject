@@ -100,7 +100,9 @@ function logout() {
                         <td><?= $volunteer->FirstName; ?></td>
                         <td><?= $volunteer->badge->get_title(); ?></td>
                         <td>
-                            <button class="button" onclick="openModal(<?= $volunteer->badge->badge_id; ?>, '<?= $volunteer->badge->get_title(); ?>', '<?= $volunteer->FirstName; ?>','<?= $volunteer->VolunteerID; ?>')">Edit</button>
+                    
+        
+                            <button class="button" onclick="openModal(<?=$controller->getBadgeIdByName($volunteer->badge->get_title()); ?>, '<?= $volunteer->badge->get_title(); ?>', '<?= $volunteer->FirstName; ?>','<?= $volunteer->VolunteerID; ?>')">Edit</button>
                         </td>
                     </tr>
             <?php endforeach; ?>
@@ -122,7 +124,8 @@ function openModal(badge_id, BadgeName, VolunteerName, VolunteerID) {
         const badgeSelect = document.getElementById("editBadgeName");
         for (let i = 0; i < badgeSelect.options.length; i++) {
             const option = badgeSelect.options[i];
-            if (option.value == badge_id) {
+            console.log(option.value, badge_id);
+            if (option.value == BadgeName) {
                 option.selected = true; // Set the corresponding badge as selected
                 break;
             }

@@ -220,7 +220,7 @@ class AdvancedBadgeDecorator extends BadgeDecorator
     }
     public function calc_score(): float
     {
-        $this->score = $this->badge->calc_score() + 20;
+        $this->score = $this->ref->calc_score() + 20;
         return $this->score;
 
     }
@@ -238,10 +238,15 @@ class ExpertBadgeDecorator extends BadgeDecorator
     public function __construct($badge)
     {
        $this->ref = $badge;
+           //   check if ref is not null
+           if ($this->ref != null) {
+           }
+
     }
     public function calc_score(): float
     {
-        $this->score = $this->badge->calc_score() + 30;
+
+        $this->score = $this->ref->calc_score() + 30;
         return $this->score;
     }
 
@@ -261,7 +266,7 @@ class MasterBadgeDecorator extends BadgeDecorator
     }
     public function calc_score(): float
     {
-        $this->score = $this->badge->calc_score() + 40;
+        $this->score = $this->ref->calc_score() + 40;
         return $this->score;
     }
 
@@ -281,7 +286,7 @@ class LeaderBadgeDecorator extends BadgeDecorator
     }
     public function calc_score(): float
     {
-        $this->score = $this->badge->calc_score() + 50;
+        $this->score = $this->ref->calc_score() + 50;
         return $this->score;
     }
 
