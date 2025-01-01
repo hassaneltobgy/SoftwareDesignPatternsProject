@@ -1,10 +1,13 @@
 <?php
 require_once '../Controllers/VolunteerController.php';
 
+
 $controller = new VolunteerController();
 // assuming that the controller has a method to get the volunteer id from the session
 $dummy_id = 49;
 $volunteer = $controller->getVolunteerbyId($dummy_id);
+$allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all skill types
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -261,63 +264,88 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
 </div>
 
         <!-- Notification Settings Section -->
-                     <div class="section">
-                <h2>Notification Settings</h2>
-                <form>
-                    <label>Select Notification Types</label>
-                    <div>
-                        <input type="checkbox" id="email" name="notificationTypes" value="email">
-                        <label for="email">Email</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" id="sms" name="notificationTypes" value="sms">
-                        <label for="sms">SMS</label>
-                    </div>
-                    <div>
-                        <input type="checkbox" id="push" name="notificationTypes" value="push">
-                        <label for="push">Push Notification</label>
-                    </div>
-                    <button type="submit">Save Notification Settings</button>
-                </form>
-            </div>
+        <div class="section">
+    <h2>Notification Settings</h2>
+    <form>
+    <label>Select Notification Types</label>
+    <?php 
+    // Fetch all available notification types
+    $notificationTypes = $controller->get_all_notification_types();
+    // Fetch the notification types already selected by the user
+    $userNotificationTypes = $controller->get_notification_types($volunteer->UserID); 
+
+    // Loop through each notification type and create a checkbox for it
+    foreach ($notificationTypes as $notificationType) {
+        // Check if the user's notification type ID is in the list of selected types
+        $isChecked = in_array($notificationType->NotificationTypeID, array_column($userNotificationTypes, 'NotificationTypeID')) ? 'checked' : '';
+        echo '<div>';
+        echo '<input type="checkbox" id="' . strtolower($notificationType->TypeName) . '" name="notificationTypes[]" value="' . $notificationType->TypeName . '" ' . $isChecked . '>';
+        echo '<label for="' . strtolower($notificationType->TypeName) . '">' . $notificationType->TypeName . '</label>';
+        echo '</div>';
+    }
+    ?>
+    <button type="button" onclick="update_notification_settings()">Save Notification Settings</button>
+</form>
+
+</div>
+
 
         <!-- Skills Section -->
         <div class="section">
     <h2>Skills</h2>
     <form id="skillsForm">
-        <div class="form-row">
-            <div>
-                <label for="skill">Skill</label>
-                <input type="text" id="skill" name="skill" required>
-            </div>
-            <div>
-                <label for="proficiency">Proficiency (1-5)</label>
-                <input type="number" id="proficiency" name="proficiency" min="1" max="5" required>
-            </div>
+    <div class="form-row">
+        <div>
+            <label for="skill">Skill</label>
+            <input type="text" id="skill" name="skill" required>
         </div>
-        <button type="submit">Add Skill</button>
-    </form>
+        <div>
+            <label for="SkillLevel">Skill Level (1-5)</label>
+            <input type="number" id="SkillLevel" name="SkillLevel" min="1" max="5" required>
+        </div>
+        <div>
+            <label>Skill Types:</label>
+            <div id="SkillTypes">
+    <?php foreach ($allSkillTypes as $skillType): ?>
+        <div class="skill-type">
+            <label for="skillType<?= htmlspecialchars($skillType->SkillTypeID); ?>">
+                <?= htmlspecialchars($skillType->SkillTypeName); ?>
+            </label>
+            <input type="checkbox" 
+                   id="skillType<?= htmlspecialchars($skillType->SkillTypeID); ?>" 
+                   name="skillTypes[]" 
+                   value="<?= htmlspecialchars($skillType->SkillTypeID); ?>">
+        </div>
+    <?php endforeach; ?>
+</div>
+
+        </div>
+    </div>
+    <button type="button" 
+            onclick="addSkill(
+                <?= $volunteer->getVolunteerID(); ?>,
+                document.getElementById('skill').value, 
+                document.getElementById('SkillLevel').value, 
+                getCheckedSkillTypes()
+            )">
+        Add Skill
+    </button>
+</form>
 
     <div id="skillList">
         <h3>Saved Skills</h3>
         <div id="skillsContainer" class="skill-cards">
             <!-- Pre-populated dummy skills -->
-            <div class="skill-card">
-                <h4>Python</h4>
-                <p>Proficiency: 5</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
-            <div class="skill-card">
-                <h4>HTML/CSS</h4>
-                <p>Proficiency: 4</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
-            <div class="skill-card">
-                <h4>JavaScript</h4>
-                <p>Proficiency: 3</p>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            </div>
+            <?php foreach ($volunteer->get_skills() as $skill): ?>
+                <div class="skill-card">
+                    <h4><?= htmlspecialchars($skill->SkillName); ?></h4>
+                    <p>Proficiency: <?= htmlspecialchars($skill->SkillLevel); ?></p>
+                    <p> Skill Types: <?= htmlspecialchars(implode(', ', array_map(fn($skillType) => $skillType->SkillTypeName, $skill->get_skill_types()))); ?> </p>
+                    <button onclick= "remove_skill(<?= $skill->SkillID; ?>, <?= $volunteer->getVolunteerID(); ?>)">Remove</button>
+                </div>
+            <?php endforeach; ?>
         </div>
+
     </div>
 </div>
 
@@ -336,17 +364,100 @@ $volunteer = $controller->getVolunteerbyId($dummy_id);
 </body>
 </html>
 <script>
+function update_notification_settings() {
+    console.log('Updating notification settings...');
+    // Get the checked checkboxes
+    const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    const notificationTypes = Array.from(checkedBoxes).map(box => box.value);
+    console.log('Selected notification types:', notificationTypes);
+
+    // Convert the array to a comma-separated string
+    const notificationTypesString = notificationTypes.join(',');
+    formData = new FormData();
+    formData.append('action', 'updateNotificationSettings');
+    formData.append('UserID', <?= $volunteer->getUserID(); ?>);
+    formData.append('notificationTypes', notificationTypesString);
+
+    // Send the comma-separated string to the server
+    fetch('VolunteerProfileView.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())  // You can handle the response as needed
+    .then(data => {
+        // Handle success response (optional)
+        console.log(data);  // You could show a message, refresh the page, etc.
+    })
+    .catch(error => {
+        // Handle error response
+        console.error('Error:', error);
+    });
+}
+
+
+function remove_skill(skillID, VolunteerID) {
+    console.log('Removing skill...');
+    if (confirm('Are you sure you want to remove this skill?')) {
+        const formData = new FormData();
+        formData.append('action', 'deleteSkill');
+        formData.append('SkillID', skillID);
+        formData.append('VolunteerID', VolunteerID);
+    
+        // Send the POST request using fetch
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  
+            // window.location.reload();
+        })
+        .catch(error => {
+            // Handle error response
+            console.error('Error:', error);
+        });
+
+    }
+}
+
+function getCheckedSkillTypes() {
+    const checkedBoxes = document.querySelectorAll('#SkillTypes input[type="checkbox"]:checked');
+    return Array.from(checkedBoxes).map(box => {
+        // Get the label by matching the 'for' attribute of the label with the id of the checkbox
+        const label = document.querySelector(`label[for="${box.id}"]`);
+        console.log("label is", label.textContent);
+
+        return label.textContent.trim() ;  // Return the label text
+    });
+}
+
+
+    function addSkill($VolunteerID, $skillName, $skillLevel, $skillTypes) {
+    console.log('Adding skill...');
+        formData = new FormData();
+        formData.append('action', 'addSkill');
+        formData.append('VolunteerID', $VolunteerID);
+        formData.append('SkillName', $skillName);
+        formData.append('SkillLevel', $skillLevel);
+        formData.append('SkillTypes', $skillTypes);
+
+        fetch('VolunteerProfileView.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())  // You can handle the response as needed
+        .then(data => {
+            // Handle success response (optional)
+            console.log(data);  // You could show a message, refresh the page, etc.
+            // refresh the page
+            // location.reload();
+        })
+    }
 
     function saveChanges(OrganizationName, StartDate, EndDate, EventName, EventDescription, EventLocation, VolunteerHistoryID) {
         console.log('Saving changes...');
-        
-
-        // document.getElementById(`organizationNameDisplay${VolunteerHistoryID}`).textContent = OrganizationName;
-        // document.getElementById(`startDateDisplay${VolunteerHistoryID}`).textContent = StartDate;
-        // document.getElementById(`endDateDisplay${VolunteerHistoryID}`).textContent = EndDate;
-        // document.getElementById(`eventNameDisplay${VolunteerHistoryID}`).textContent = EventName;
-        // document.getElementById(`eventDescriptionDisplay${VolunteerHistoryID}`).textContent = EventDescription;
-        // document.getElementById(`eventLocationDisplay${VolunteerHistoryID}`).textContent = EventLocation;
 
 
         console.log("Values to Save: ", OrganizationName, StartDate, EndDate, EventName, EventDescription, EventLocation, VolunteerHistoryID);

@@ -279,7 +279,9 @@ class Volunteer extends User {
         return $this->VolunteerID;
     }
     public function getUserID() {
+        // get user id from volunteer id
         return $this->UserID;
+        
     }
     public function get_hours_contributed() {
         return $this->hours_contributed;
@@ -486,26 +488,27 @@ class Volunteer extends User {
         return $Result;
     }
 
-    public function add_skill($skill_name) {
-        // Fetch SkillID for the given skill name
-        $query = "SELECT SkillID FROM Skill WHERE SkillName = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("s", $skill_name);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    public function add_skill($skill) {
+        // this function takes a skill object as input
+        $skill_id = $skill->SkillID;
+        $skill_name = $skill->SkillName;
+        $SkillLevel = $skill->SkillLevel;
+        $SkillTypes = $skill->SkillTypes;
+
+            $skill= Skill::create($skill_name, $SkillLevel, $SkillTypes);
         
-        if ($row = $result->fetch_assoc()) {
-            $skill_id = $row['SkillID'];
+       
+            $skill_id = $skill->SkillID;
     
             // Insert the SkillID into the VolunteerSkills table
-            $query = "INSERT INTO VolunteerSkills (VolunteerID, SkillID) VALUES (?, ?)";
+            $query = "INSERT INTO Volunteer_Skills (VolunteerID, SkillID) VALUES (?, ?)";
             $stmt = $this->conn->prepare($query);
             $stmt->bind_param("ii", $this->VolunteerID, $skill_id);
             
             if ($stmt->execute()) {
                 return true;
             }
-        }
+        
         return false;
     }
     
@@ -513,7 +516,7 @@ class Volunteer extends User {
     public function get_skills() {
         // SQL query to fetch all skills associated with the volunteer
         $query = "
-            SELECT s.SkillID, s.SkillName, s.SkillDescription, s.SkillLevel 
+            SELECT s.SkillID, s.SkillName, s.SkillLevel 
             FROM Volunteer_Skills vs
             INNER JOIN Skill s ON vs.SkillID = s.SkillID
             WHERE vs.VolunteerID = ?
@@ -532,41 +535,30 @@ class Volunteer extends User {
         $result = $stmt->get_result();
         $skills = [];
     
+        // return skills as an array of skill objects
         while ($row = $result->fetch_assoc()) {
-            $skills[] = [
-                'SkillID' => $row['SkillID'],
-                'SkillName' => $row['SkillName'],
-                'SkillDescription' => $row['SkillDescription'],
-                'SkillLevel' => $row['SkillLevel']
-            ];
+            $skill = new Skill();
+            $skill->SkillID = $row['SkillID'];
+            $skill->SkillName = $row['SkillName'];
+            $skill->SkillLevel = $row['SkillLevel'];
+            $skills[] = $skill;
         }
-    
+        
         $stmt->close();
-    
         return $skills;
     }
     
 
-    public function remove_skill($skill_name) {
-        // Fetch SkillID for the given skill name
-        $query = "SELECT SkillID FROM Skill WHERE SkillName = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("s", $skill_name);
-        $stmt->execute();
-        $result = $stmt->get_result();
-    
-        if ($row = $result->fetch_assoc()) {
-            $skill_id = $row['SkillID'];
-    
+    public function remove_skill($skillID) {
             // Delete the record from VolunteerSkills
-            $query = "DELETE FROM VolunteerSkills WHERE VolunteerID = ? AND SkillID = ?";
+            $query = "DELETE FROM Volunteer_Skills WHERE VolunteerID = ? AND SkillID = ?";
             $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("ii", $this->VolunteerID, $skill_id);
+            $stmt->bind_param("ii", $this->VolunteerID, $skillID);
     
             if ($stmt->execute()) {
                 return true;
             }
-        }
+        
         return false;
     }
     

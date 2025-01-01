@@ -48,7 +48,7 @@ class User {
                 $this->UserType = $this->getUserType();
                 $this->Privileges = $this->getPrivileges();
                 $this->Locations = $this->getLocations($this->UserID);
-                $this->NotificationTypes = $this->get_notification_types();
+                $this->NotificationTypes = $this->get_notification_types($this->UserID);
             } else {
                 // Handle case where no user is found
                 echo "User not found.";
@@ -591,27 +591,36 @@ class User {
         }
         return null;
     }
-    public function get_notification_types() {
+    public static function get_notification_types($UserID) {
         $query = "SELECT nt.* FROM NotificationType nt
                   JOIN User_NotificationType un ON nt.NotificationTypeID = un.NotificationTypeID
                   WHERE un.UserID = ?";
-        $stmt = $this->conn->prepare($query);
+        $conn = Database::getInstance()->getConnection();
+        $stmt = $conn->prepare($query);
         if ($stmt === false) {
             // echo "Prepare failed: " . $this->conn->error;
             return null;
         }
-        $stmt->bind_param("i", $this->UserID);
+        $stmt->bind_param("i", $UserID);
         $stmt->execute();
         $result = $stmt->get_result();
         
         $notification_types = [];
+        // return an array of notification types objects
         while ($row = $result->fetch_assoc()) {
-            $notification_types[] = $row;
+            $notificationType = new NotificationType();
+            $notificationType->NotificationTypeID = $row['NotificationTypeID'];
+            $notificationType->TypeName = $row['TypeName'];
+            $notification_types[] = $notificationType;
         }
         return $notification_types;
     }
+
+
+
     public function add_notification_type($NotificationTypeID) {
-        $query = "INSERT INTO User_NotificationTypes (UserID, NotificationTypeID) VALUES (?, ?)";
+        echo "now in add_notification_type, adding Notification Type for user with ID: $this->UserID, NotificationTypeID: $NotificationTypeID";
+        $query = "INSERT INTO User_NotificationType (UserID, NotificationTypeID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
     
         $stmt->bind_param("ii", $this->UserID, $NotificationTypeID);
@@ -632,12 +641,43 @@ class User {
     }
     
     public function remove_notification_type($NotificationTypeID) {
-        $query = "DELETE FROM User_NotificationTypes WHERE UserID = ? AND NotificationTypeID = ?";
+        $query = "DELETE FROM User_NotificationType WHERE UserID = ? AND NotificationTypeID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("ii", $this->UserID, $NotificationTypeID);
 
         return $stmt->execute();
     }
 
+
+    public function update_Notification_Types($NotificationTypeNames) {
+        //    overwrite the notification types for the user id 
+        echo "now in update_Notification_Types, updating Notification Types for user with ID: $this->UserID, NotificationTypeNames: $NotificationTypeNames";
+            $query = "DELETE FROM User_NotificationType WHERE UserID = ?";
+            $stmt = $this->conn->prepare($query);
+        
+            $stmt->bind_param("i", $this->UserID);
+            $stmt->execute();
+            // check if Notification Type names is not null 
+            if ($NotificationTypeNames === null) {
+                return;
+            }
+            if (!is_array($NotificationTypeNames)) {
+                $NotificationTypeNames = [$NotificationTypeNames];
+            }
+            if (count($NotificationTypeNames) === 0) {
+                return;
+            }
+            // split the notification type names by comma
+
+            $NotificationTypeNames = explode(",", $NotificationTypeNames[0]);
+            for ($i = 0; $i < count($NotificationTypeNames); $i++) {
+                // trim the notification type name 
+                $NotificationTypeNames[$i] = trim($NotificationTypeNames[$i]);
+                echo "NotificationTypeNames[$i]: $NotificationTypeNames[$i]";
+                $NotificationID= NotificationType::getNotificationTypeIdByName($NotificationTypeNames[$i]);
+                echo "NotificationID: $NotificationID";
+                $this->add_notification_type($NotificationID);
+            }
+        }
 }
 ?>

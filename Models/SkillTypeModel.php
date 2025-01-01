@@ -8,9 +8,19 @@ class SkillType
     public $SkillTypeName;
     private $conn;
 
-    public function __construct()
+    public function __construct($id = null, $SkillTypeName = null)
     {
         $this->conn = (Database::getInstance())->getConnection();
+        if ($id) {
+            echo "is is not null for skill type model constructor";
+            $skillType = $this->read_by_id($id);
+            $this->SkillTypeID = $skillType->SkillTypeID;
+            $this->SkillTypeName = $skillType->SkillTypeName;
+        }
+        else{
+            $this->SkillTypeID = $id;
+            $this->SkillTypeName = $SkillTypeName;
+        }
     }
 
     public function create()
@@ -24,6 +34,17 @@ class SkillType
             return $this;  
         }
         return null;
+    }
+    public static function GetSkillTypeID($SkillTypeName)
+    {
+        $conn = (Database::getInstance())->getConnection();
+        $query = "SELECT SkillTypeID FROM SkillType WHERE SkillTypeName = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $SkillTypeName);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        return $data['SkillTypeID'];
     }
 
     public function read_by_id($id)
@@ -68,14 +89,16 @@ class SkillType
         return $stmt->execute();
     }
 
-    public function read_all()
+    public static function read_all()
     {
-        $query = "SELECT * FROM " . $this->table;
-        $result = $this->conn->query($query);
+        $table = "SkillType";
+        $conn = (Database::getInstance())->getConnection();
+        $query = "SELECT * FROM " . $table;
+        $result = $conn->query($query);
         
         $skillTypes = [];
         while ($row = $result->fetch_assoc()) {
-            $skillType = new SkillType($this->conn);
+            $skillType = new SkillType();
             $skillType->SkillTypeID = $row['SkillTypeID'];
             $skillType->SkillTypeName = $row['SkillTypeName'];
             $skillTypes[] = $skillType;  

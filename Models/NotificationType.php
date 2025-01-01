@@ -15,9 +15,30 @@ class NotificationType
     public static function get_all() {
         $query = "SELECT * FROM NotificationType";
         $conn = Database::getInstance()->getConnection();
+        $result = $conn->query($query);
+        $notificationTypes = array();
+
+        while ($row = $result->fetch_assoc()) {
+            $notificationType = new NotificationType();
+            $notificationType->NotificationTypeID = $row['NotificationTypeID'];
+            $notificationType->TypeName = $row['TypeName'];
+            $notificationTypes[] = $notificationType;
+        }
+        return $notificationTypes;
+
+    }
+    public static function getNotificationTypeIdByName($name){
+        $query = "SELECT NotificationTypeID FROM NotificationType WHERE TypeName = ? LIMIT 1";
+        $conn = Database::getInstance()->getConnection();
         $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $name);
         $stmt->execute();
-        return $stmt->get_result();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            return $row['NotificationTypeID'];
+        }
+        return null;
     }
 
     public static function get_by_id($id) {

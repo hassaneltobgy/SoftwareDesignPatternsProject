@@ -4,6 +4,9 @@ require_once '../Models/VolunteerHistoryModel.php';
 require_once '../Models/VolunteerFeedbackModel.php';
 require_once '../Models/Event.php';
 require_once '../Models/EventFeedbackModel.php';
+require_once '../Models/SkillTypeModel.php';
+require_once '../Models/SkillsModel.php';
+require_once '../Models/NotificationType.php';
 
 class VolunteerController {
     private $VolunteerModel;
@@ -40,6 +43,8 @@ class VolunteerController {
     }
     
     }
+
+
 
     public function addLocation($countries, $cities, $areas, $volunteerID, $userid)
     {
@@ -122,6 +127,40 @@ class VolunteerController {
         
 
     }
+    public function addSkill($VolunteerID, $SkillName, $SkillLevel, $skillTypes) {
+        $volunteer = new Volunteer($VolunteerID);
+        $skillTypes = explode(",", $skillTypes);
+        // convert the skill types to an array of objects
+        // echo "skill types are " . $skillTypes;
+        for ($i = 0; $i < count($skillTypes); $i++) {
+            $skillTypes[$i] = new SkillType(SkillTypeName: $skillTypes[$i]);
+        }
+        for ($i = 0; $i < count($skillTypes); $i++) {
+            $skill = new Skill(SkillName: $SkillName, SkillLevel: $SkillLevel, SkillTypes: $skillTypes);
+            $volunteer->add_skill($skill);
+        }
+   
+    }
+    public function getAllSkillTypes() {
+        return SkillType::read_all();
+    }
+    public function deleteSkill($volunteerID, $skillID) {
+        $volunteer = new Volunteer($volunteerID);
+        $volunteer->remove_skill($skillID);
+    }
+
+    public function get_notification_types($UserID){
+        return User::get_notification_types($UserID);
+    }
+    public function get_all_notification_types(){
+        return NotificationType::get_all();
+    }
+
+    public function updateNotificationSettings($UserID, $notificationTypes) {
+        echo "NotificationTypes in controller are " . $notificationTypes;
+        $user = new User($UserID);
+        $user->update_Notification_Types($notificationTypes);
+    }   
 }
 
 
@@ -209,6 +248,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $VolunteerController->editVolunteerHistory($_POST['VolunteerHistoryID'], $_POST['OrganizationName'],
         $_POST['StartDate'], $_POST['EndDate'], $_POST['EventName'], $_POST['EventDescription'], 
         $_POST['EventLocation']);
+        break;
+
+    case 'addSkill':
+        $VolunteerController->addSkill($_POST['VolunteerID'], $_POST['SkillName'], $_POST['SkillLevel'], $_POST['SkillTypes']);
+        break;
+
+
+    case 'deleteSkill':
+        echo "deleteSkill";
+        $volunteerID = $_POST['VolunteerID'];
+        $skillID = $_POST['SkillID'];
+        $VolunteerController->deleteSkill($volunteerID, $skillID);
+        break;
+
+    case  'updateNotificationSettings':
+        echo "updateNotificationSettings";
+        $UserID = $_POST['UserID'];
+        $notificationTypes = $_POST['notificationTypes'];
+        $VolunteerController->updateNotificationSettings($UserID, $notificationTypes);
         break;
     }
 }

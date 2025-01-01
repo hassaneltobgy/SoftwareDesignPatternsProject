@@ -6,29 +6,26 @@ class Skill
     private $conn;
     public $SkillID;
     public $SkillName;
-    public $SkillDescription;
     public $SkillLevel;
     public $SkillTypes = [];
 
-    public function __construct($id = null)
+    public function __construct($id = null, $SkillName = null, $SkillLevel = null, $SkillTypes = null)
     {
         $this->conn = (Database::getInstance())->getConnection();
         if ($id) {
             $skill = $this->read_by_id($id);
             $this->SkillID = $skill->SkillID;
             $this->SkillName = $skill->SkillName;
-            $this->SkillDescription = $skill->SkillDescription;
             $this->SkillLevel = $skill->SkillLevel;
         }
+        else{
+            $this->SkillID = $id;
+            $this->SkillName = $SkillName;
+            $this->SkillLevel = $SkillLevel;
+            $this->SkillTypes = $SkillTypes;
+        }
     }
-    public function create_skill($skillName, $skillDescription, $skillLevel)
-    {
-        $this->SkillName = $skillName;
-        $this->SkillDescription = $skillDescription;
-        $this->SkillLevel = $skillLevel;
-        return $this->create();
-    }
-
+  
     
     public function read_all()
     {
@@ -40,7 +37,6 @@ class Skill
             $skill = new Skill($this->conn);
             $skill->SkillID = $row['SkillID'];
             $skill->SkillName = $row['SkillName'];
-            $skill->SkillDescription = $row['SkillDescription'];
             $skill->SkillLevel = $row['SkillLevel'];
             $skills[] = $skill;
         }
@@ -61,7 +57,6 @@ class Skill
             $skill = new Skill($this->conn);
             $skill->SkillID = $row['SkillID'];
             $skill->SkillName = $row['SkillName'];
-            $skill->SkillDescription = $row['SkillDescription'];
             $skill->SkillLevel = $row['SkillLevel'];
             return $skill;
         }
@@ -69,27 +64,60 @@ class Skill
         return null; // No skill found
     }
 
-     public function create()
-     {
-         $query = "INSERT INTO " . $this->table . " (SkillName, SkillDescription, SkillLevel) VALUES (?, ?, ?)";
-         
-         $stmt = $this->conn->prepare($query);
-         $stmt->bind_param("sss", $this->SkillName, $this->SkillDescription, $this->SkillLevel);
- 
-         if ($stmt->execute()) {
-             $this->SkillID = $this->conn->insert_id;
-             return $this; // Return the current object with the updated ID
-         } else {
-             return null; 
-         }
-     }
+    public static function create($SkillName, $SkillLevel, $SkillTypes)
+{
+    $conn = (Database::getInstance())->getConnection();
+    
+    // First, check if the skill already exists
+    $checkQuery = "SELECT * FROM Skill WHERE SkillName = ? AND SkillLevel = ?";
+    $stmt = $conn->prepare($checkQuery);
+    $stmt->bind_param("si", $SkillName, $SkillLevel);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // If the skill exists, return null or an appropriate message
+    if ($result->num_rows > 0) {
+        // return an object with the attributes of the existing skill
+        $data = $result->fetch_assoc();
+        $skill = new Skill();
+        $skill->SkillID = $data['SkillID'];
+        $skill->SkillName = $data['SkillName'];
+        $skill->SkillLevel = $data['SkillLevel'];
+        $skill->SkillTypes = $SkillTypes;
+        return $skill;
+    }
+    
+    // If the skill doesn't exist, proceed to insert
+    $query = "INSERT INTO Skill (SkillName, SkillLevel) VALUES (?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("si", $SkillName, $SkillLevel);
+    
+    if ($stmt->execute()) {
+        $skill = new Skill();
+        $skill->SkillID = $conn->insert_id;
+        $skill->SkillName = $SkillName;
+        $skill->SkillLevel = $SkillLevel;
+        $skill->SkillTypes = $SkillTypes;
+        
+        // Associate the skill with its types
+        foreach ($SkillTypes as $skillType) {
+            $SkillTypeID = SkillType::GetSkillTypeID($skillType->SkillTypeName);
+            $skill->add_skill_type($SkillTypeID);
+        }
+        
+        return $skill;  // Return the newly created skill
+    } else {
+        return null;  // Something went wrong with the insert
+    }
+}
+
  
      public function update()
      {
-         $query = "UPDATE " . $this->table . " SET SkillName = ?, SkillDescription = ?, SkillLevel = ? WHERE SkillID = ?";
+         $query = "UPDATE " . $this->table . " SET SkillName = ?, SkillLevel = ? WHERE SkillID = ?";
          
          $stmt = $this->conn->prepare($query);
-         $stmt->bind_param("sssi", $this->SkillName, $this->SkillDescription, $this->SkillLevel, $this->SkillID);
+         $stmt->bind_param("sssi", $this->SkillName, $this->SkillLevel, $this->SkillID);
          
          if ($stmt->execute()) {
              return $this; 
@@ -110,11 +138,11 @@ class Skill
     // Add a SkillType to this Skill
     public function add_skill_type($skillTypeID)
     {
-        $query = "INSERT INTO SkillSkillType (SkillID, SkillTypeID) VALUES (?, ?)";
+        $query = "INSERT INTO Skill_SkillType (SkillID, SkillTypeID) VALUES (?, ?)";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("ii", $this->SkillID, $skillTypeID);
         if ($stmt->execute()) {
-            return $this;
+            return true;
         }
         return null;
     }
@@ -132,21 +160,32 @@ class Skill
     public function get_skill_types()
     {
         $query = "SELECT st.SkillTypeID, st.SkillTypeName FROM Skill_SkillType sst
-                  INNER JOIN Skill_SkillType st ON sst.SkillTypeID = st.SkillTypeID
+                  INNER JOIN SkillType st ON sst.SkillTypeID = st.SkillTypeID
                   WHERE sst.SkillID = ?";
         
         $stmt = $this->conn->prepare($query);
+    
+        // Check if the query preparation was successful
+        if ($stmt === false) {
+            die('Error preparing the SQL query: ' . $this->conn->error);
+        }
+    
         $stmt->bind_param("i", $this->SkillID);
         $stmt->execute();
         
         $result = $stmt->get_result();
         $skillTypes = [];
         
+        // Return an array of SkillType objects
         while ($row = $result->fetch_assoc()) {
-            $skillTypes[] = $row;
+            $skillType = new SkillType();
+            $skillType->SkillTypeID = $row['SkillTypeID'];
+            $skillType->SkillTypeName = $row['SkillTypeName'];
+            $skillTypes[] = $skillType;
         }
         
         return $skillTypes;
     }
 }
+    
 ?>

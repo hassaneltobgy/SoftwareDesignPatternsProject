@@ -233,5 +233,20 @@ ul {
 .delete-icon:hover {
     color: #b71c1c;
 }
+#SkillTypes {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.skill-type {
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.skill-type label {
+    margin-right: 5px;
+}
+
 
 
