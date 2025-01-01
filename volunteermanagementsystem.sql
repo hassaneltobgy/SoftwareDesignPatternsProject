@@ -62,9 +62,9 @@ CREATE TABLE `admin_notificationtype` (
   `AdminID` int NOT NULL,
   `NotificationTypeID` int NOT NULL,
   PRIMARY KEY (`AdminID`,`NotificationTypeID`),
-  KEY `NotificationTypeID` (`NotificationTypeID`),
+  KEY `admin_notificationtype_ibfk_2` (`NotificationTypeID`),
   CONSTRAINT `admin_notificationtype_ibfk_1` FOREIGN KEY (`AdminID`) REFERENCES `admin` (`AdminId`),
-  CONSTRAINT `admin_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`)
+  CONSTRAINT `admin_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -909,7 +909,10 @@ CREATE TABLE `notification` (
   `NotificationID` int NOT NULL AUTO_INCREMENT,
   `NotificationMessage` varchar(255) NOT NULL,
   `NotificationTime` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`NotificationID`)
+  `notificationtypeid` int DEFAULT NULL,
+  PRIMARY KEY (`NotificationID`),
+  KEY `fk_notification_type` (`notificationtypeid`),
+  CONSTRAINT `fk_notification_type` FOREIGN KEY (`notificationtypeid`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -930,10 +933,10 @@ DROP TABLE IF EXISTS `notificationtype`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notificationtype` (
-  `NotificationTypeID` int NOT NULL,
+  `NotificationTypeID` int NOT NULL AUTO_INCREMENT,
   `TypeName` varchar(50) NOT NULL,
   PRIMARY KEY (`NotificationTypeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -942,6 +945,7 @@ CREATE TABLE `notificationtype` (
 
 LOCK TABLES `notificationtype` WRITE;
 /*!40000 ALTER TABLE `notificationtype` DISABLE KEYS */;
+INSERT INTO `notificationtype` VALUES (1,'email'),(2,'push notification'),(3,'sms');
 /*!40000 ALTER TABLE `notificationtype` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1074,9 +1078,9 @@ CREATE TABLE `organization_notificationtype` (
   `organizationid` int NOT NULL,
   `notificationtypeid` int NOT NULL,
   PRIMARY KEY (`organizationid`,`notificationtypeid`),
-  KEY `notificationtypeid` (`notificationtypeid`),
+  KEY `organization_notificationtype_ibfk_2` (`notificationtypeid`),
   CONSTRAINT `organization_notificationtype_ibfk_1` FOREIGN KEY (`organizationid`) REFERENCES `organization` (`OrganizationID`),
-  CONSTRAINT `organization_notificationtype_ibfk_2` FOREIGN KEY (`notificationtypeid`) REFERENCES `notificationtype` (`NotificationTypeID`)
+  CONSTRAINT `organization_notificationtype_ibfk_2` FOREIGN KEY (`notificationtypeid`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1429,11 +1433,10 @@ DROP TABLE IF EXISTS `skill`;
 CREATE TABLE `skill` (
   `SkillID` int NOT NULL AUTO_INCREMENT,
   `SkillName` varchar(255) NOT NULL,
-  `SkillDescription` text,
-  `SkillLevel` varchar(255) DEFAULT NULL,
+  `SkillLevel` int DEFAULT NULL,
   PRIMARY KEY (`SkillID`),
   UNIQUE KEY `SkillName` (`SkillName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1442,6 +1445,7 @@ CREATE TABLE `skill` (
 
 LOCK TABLES `skill` WRITE;
 /*!40000 ALTER TABLE `skill` DISABLE KEYS */;
+INSERT INTO `skill` VALUES (1,'Test Skill',2),(2,'Leading Teams',4);
 /*!40000 ALTER TABLE `skill` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1456,9 +1460,9 @@ CREATE TABLE `skill_skilltype` (
   `SkillID` int NOT NULL,
   `SkillTypeID` int NOT NULL,
   PRIMARY KEY (`SkillID`,`SkillTypeID`),
-  KEY `SkillTypeID` (`SkillTypeID`),
+  KEY `skill_skilltype_ibfk_2` (`SkillTypeID`),
   CONSTRAINT `skill_skilltype_ibfk_1` FOREIGN KEY (`SkillID`) REFERENCES `skill` (`SkillID`) ON DELETE CASCADE,
-  CONSTRAINT `skill_skilltype_ibfk_2` FOREIGN KEY (`SkillTypeID`) REFERENCES `skilltype` (`SkillTypeID`) ON DELETE CASCADE
+  CONSTRAINT `skill_skilltype_ibfk_2` FOREIGN KEY (`SkillTypeID`) REFERENCES `skilltype` (`SkillTypeID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1468,6 +1472,7 @@ CREATE TABLE `skill_skilltype` (
 
 LOCK TABLES `skill_skilltype` WRITE;
 /*!40000 ALTER TABLE `skill_skilltype` DISABLE KEYS */;
+INSERT INTO `skill_skilltype` VALUES (1,3),(2,7),(2,8),(1,9),(2,9);
 /*!40000 ALTER TABLE `skill_skilltype` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1479,10 +1484,10 @@ DROP TABLE IF EXISTS `skilltype`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `skilltype` (
-  `SkillTypeID` int NOT NULL,
+  `SkillTypeID` int NOT NULL AUTO_INCREMENT,
   `SkillTypeName` varchar(50) NOT NULL,
   PRIMARY KEY (`SkillTypeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1491,6 +1496,7 @@ CREATE TABLE `skilltype` (
 
 LOCK TABLES `skilltype` WRITE;
 /*!40000 ALTER TABLE `skilltype` DISABLE KEYS */;
+INSERT INTO `skilltype` VALUES (1,'Programming'),(2,'Design'),(3,'Project Management'),(4,'Data Analysis'),(5,'Marketing'),(6,'Communication'),(7,'Leadership'),(8,'Problem Solving'),(9,'Time Management'),(10,'Teamwork');
 /*!40000 ALTER TABLE `skilltype` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1680,7 +1686,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (75,'Bob','Brown','bobb@example.com','5678901234','2002-08-07','bobbrown','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-25','2024-12-05',2),(86,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',1),(93,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhusseiny@gmail.com','$2y$10$kUwMOEKVh9mmLxA89OGZj.8rF6BRHSSAHztwZ4UVgvxqJRi9bhSba','2002-02-02','2002-02-02',1),(95,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(96,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$0lkVzJDkXdFc4TF70BgY8uEN8zJjjNMXeCvk0ZZiAtQLOjjSa.eku','2024-12-28','2024-12-28',1),(97,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$zLUaGcH7lWN1I1wnfnPcgu/dRiWPfe6Xzj/ZwRdrqqeor1IjLYuJS','2024-12-28','2024-12-28',1),(98,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$f0HMDwLOADKo3WorbFGKiut7vRWFLAWXe0IPBLEW/yNpBppxzNd26','2024-12-28','2024-12-28',1),(118,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',2),(119,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$CIhU1A6h9OAYwDZO5KMNEuO/ePk9Zcz0pRgIG0mo8ma4GAyYKCFgu','2024-12-29','2024-12-29',2),(121,'Masr el Kheir','Masr el Kheir','Masr.ElKheir@example.com','12345678','2002-02-02','Masr.ElKheir@example.com','$2y$10$BfH9Tpy73UsnA8Oud7oUg.s3kEftvqeLwCMJKJih/od7T4O9sskKi','2024-12-29','2024-12-29',3);
+INSERT INTO `user` VALUES (75,'Bob','Brown','bobb@example.com','5678901234','2002-08-07','bobbrown','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-25','2024-12-05',2),(86,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',1),(93,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhussieny@gmail.com','$2y$10$8yEwVjfhu2KCFmNTqqqbRunFZFzhUeh5CyyXJWyqpoOlhmHDAJnZW','2002-02-02','2002-02-02',1),(95,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(96,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$0lkVzJDkXdFc4TF70BgY8uEN8zJjjNMXeCvk0ZZiAtQLOjjSa.eku','2024-12-28','2024-12-28',1),(97,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$zLUaGcH7lWN1I1wnfnPcgu/dRiWPfe6Xzj/ZwRdrqqeor1IjLYuJS','2024-12-28','2024-12-28',1),(98,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$f0HMDwLOADKo3WorbFGKiut7vRWFLAWXe0IPBLEW/yNpBppxzNd26','2024-12-28','2024-12-28',1),(118,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',2),(119,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$CIhU1A6h9OAYwDZO5KMNEuO/ePk9Zcz0pRgIG0mo8ma4GAyYKCFgu','2024-12-29','2024-12-29',2),(121,'Masr el Kheir','Masr el Kheir','Masr.ElKheir@example.com','12345678','2002-02-02','Masr.ElKheir@example.com','$2y$10$BfH9Tpy73UsnA8Oud7oUg.s3kEftvqeLwCMJKJih/od7T4O9sskKi','2024-12-29','2024-12-29',3);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1722,9 +1728,9 @@ CREATE TABLE `user_notificationtype` (
   `UserID` int NOT NULL,
   `NotificationTypeID` int NOT NULL,
   PRIMARY KEY (`UserID`,`NotificationTypeID`),
-  KEY `NotificationTypeID` (`NotificationTypeID`),
+  KEY `user_notificationtype_ibfk_2` (`NotificationTypeID`),
   CONSTRAINT `user_notificationtype_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
-  CONSTRAINT `user_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`)
+  CONSTRAINT `user_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1734,6 +1740,7 @@ CREATE TABLE `user_notificationtype` (
 
 LOCK TABLES `user_notificationtype` WRITE;
 /*!40000 ALTER TABLE `user_notificationtype` DISABLE KEYS */;
+INSERT INTO `user_notificationtype` VALUES (93,1),(93,2),(93,3);
 /*!40000 ALTER TABLE `user_notificationtype` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1760,7 +1767,7 @@ CREATE TABLE `user_privilege` (
 
 LOCK TABLES `user_privilege` WRITE;
 /*!40000 ALTER TABLE `user_privilege` DISABLE KEYS */;
-INSERT INTO `user_privilege` VALUES (95,1),(118,1),(121,1),(118,2),(75,3),(86,3),(93,3),(86,4),(93,4),(93,9);
+INSERT INTO `user_privilege` VALUES (95,1),(118,1),(121,1),(118,2),(75,3),(86,3),(93,3),(86,4),(93,4);
 /*!40000 ALTER TABLE `user_privilege` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1825,7 +1832,7 @@ CREATE TABLE `volunteer` (
 
 LOCK TABLES `volunteer` WRITE;
 /*!40000 ALTER TABLE `volunteer` DISABLE KEYS */;
-INSERT INTO `volunteer` VALUES (47,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',0,0,9,86),(49,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhusseiny@gmail.com','$2y$10$kUwMOEKVh9mmLxA89OGZj.8rF6BRHSSAHztwZ4UVgvxqJRi9bhSba','2002-02-02','2002-02-02',0,0,7,93),(51,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,95),(52,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$yJQ0mm86kf984pBXPvnwGu6GLDolfYaDq4aO3m.G3VGwQNqyfUhWm','2024-12-28','2024-12-28',0,0,7,96),(53,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$r92GvTrRiBsAo2k0fHc9TuUVx1RPbDthh/NckJCUnmw3OXTTg4FWm','2024-12-28','2024-12-28',0,0,11,97),(54,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$qgr2MldxxEz7gJhs5n.6UuO99YbbdnAiz7spcWKXxAj8/kbr4y0lO','2024-12-28','2024-12-28',0,0,7,98);
+INSERT INTO `volunteer` VALUES (47,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',0,0,9,86),(49,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhussieny@gmail.com','$2y$10$8yEwVjfhu2KCFmNTqqqbRunFZFzhUeh5CyyXJWyqpoOlhmHDAJnZW','2002-02-02','2002-02-02',13,13,10,93),(51,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,95),(52,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$yJQ0mm86kf984pBXPvnwGu6GLDolfYaDq4aO3m.G3VGwQNqyfUhWm','2024-12-28','2024-12-28',0,0,7,96),(53,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$r92GvTrRiBsAo2k0fHc9TuUVx1RPbDthh/NckJCUnmw3OXTTg4FWm','2024-12-28','2024-12-28',0,0,11,97),(54,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$qgr2MldxxEz7gJhs5n.6UuO99YbbdnAiz7spcWKXxAj8/kbr4y0lO','2024-12-28','2024-12-28',0,0,7,98);
 /*!40000 ALTER TABLE `volunteer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1866,9 +1873,9 @@ CREATE TABLE `volunteer_notificationtype` (
   `VolunteerID` int NOT NULL,
   `NotificationTypeID` int NOT NULL,
   PRIMARY KEY (`VolunteerID`,`NotificationTypeID`),
-  KEY `NotificationTypeID` (`NotificationTypeID`),
+  KEY `volunteer_notificationtype_ibfk_2` (`NotificationTypeID`),
   CONSTRAINT `volunteer_notificationtype_ibfk_1` FOREIGN KEY (`VolunteerID`) REFERENCES `volunteer` (`VolunteerID`),
-  CONSTRAINT `volunteer_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`)
+  CONSTRAINT `volunteer_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1930,6 +1937,7 @@ CREATE TABLE `volunteer_skills` (
 
 LOCK TABLES `volunteer_skills` WRITE;
 /*!40000 ALTER TABLE `volunteer_skills` DISABLE KEYS */;
+INSERT INTO `volunteer_skills` VALUES (49,2);
 /*!40000 ALTER TABLE `volunteer_skills` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2102,4 +2110,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-31 22:50:10
+-- Dump completed on 2025-01-01 17:02:40
