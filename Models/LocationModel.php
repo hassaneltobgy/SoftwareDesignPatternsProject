@@ -40,6 +40,7 @@ class Location
     }
     
         // If no matching record exists, insert a new one
+        echo "Now inserting in table Location, name is $Name, ParentID is $ParentID";
         $query = "INSERT INTO Location (Name, ParentID) VALUES (?, ?)";
         $stmt = $conn->prepare($query);
         $stmt->bind_param('si', $Name, $ParentID);

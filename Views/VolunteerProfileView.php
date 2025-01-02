@@ -126,77 +126,84 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
                 </form>
 
 
-                <form action="VolunteerProfileView.php" >
+                <form action="VolunteerProfileView.php" method="POST">
     <input type="hidden" name="UserID" value="<?php echo $volunteer->getUserID(); ?>">
     <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
+
+    <!-- Location Selectors (if applicable) -->
+    <select class="country-dropdown" name="locations[<?php echo $locationIndex; ?>][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+        <option value="">Select Country</option>
+    </select>
+    <select class="city-dropdown" name="locations[<?php echo $locationIndex; ?>][city]" onchange="handleCityChange(this, this.nextElementSibling)">
+        <option value="">Select City</option>
+    </select>
+    <select class="area-dropdown" name="locations[<?php echo $locationIndex; ?>][area]">
+        <option value="">Select Area</option>
+    </select>
 
     <div class="locations-wrapper">
         <?php if (!empty($volunteer->getLocations($volunteer->UserID))): ?>
             <?php foreach ($volunteer->getLocations($volunteer->UserID) as $index => $location): ?>
-                <div class="location-box">
-                    <button type="button" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline;" onclick="deleteLocation(<?= $location['ID']; ?>, <?= $volunteer->getUserID(); ?>)">Delete</button>
-                    <p><strong>Country:</strong> <?php echo htmlspecialchars($location['Country']); ?></p>
-                    <p><strong>City:</strong> <?php echo htmlspecialchars($location['City']); ?></p>
-                    <p><strong>Area:</strong> <?php echo htmlspecialchars($location['Area']); ?></p>
+                <div class="location-box" id="location-<?= $location['ID']; ?>">
+                    <button type="button" style="background:none; border:none; color:red; cursor:pointer; text-decoration:underline;" 
+                            onclick="deleteLocation(<?= $location['ID']; ?>, <?= $volunteer->getUserID(); ?>)">Delete</button>
+                    <p id="country-display-<?= $location['ID']; ?>"><strong>Country:</strong> <?php echo htmlspecialchars($location['Country']); ?></p>
+                    <p id="city-display-<?= $location['ID']; ?>"><strong>City:</strong> <?php echo htmlspecialchars($location['City']); ?></p>
+                    <p id="area-display-<?= $location['ID']; ?>"><strong>Area:</strong> <?php echo htmlspecialchars($location['Area']); ?></p>
+
+                    <!-- Hidden editable dropdowns -->
+                    <select id="country-edit-<?= $location['ID']; ?>" class="country-dropdown" style="display:none;" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+                        <option value="">Select Country</option>
+                        <option value="Country1" <?= $location['Country'] === 'Country1' ? 'selected' : ''; ?>>Country1</option>
+                        <option value="Country2" <?= $location['Country'] === 'Country2' ? 'selected' : ''; ?>>Country2</option>
+                    </select>
+                    <select id="city-edit-<?= $location['ID']; ?>" class="city-dropdown" style="display:none;" onchange="handleCityChange(this, this.nextElementSibling)">
+                        <option value="">Select City</option>
+                        <option value="City1" <?= $location['City'] === 'City1' ? 'selected' : ''; ?>>City1</option>
+                        <option value="City2" <?= $location['City'] === 'City2' ? 'selected' : ''; ?>>City2</option>
+                    </select>
+                    <select id="area-edit-<?= $location['ID']; ?>" class="area-dropdown" style="display:none;">
+                        <option value="">Select Area</option>
+                        <option value="Area1" <?= $location['Area'] === 'Area1' ? 'selected' : ''; ?>>Area1</option>
+                        <option value="Area2" <?= $location['Area'] === 'Area2' ? 'selected' : ''; ?>>Area2</option>
+                    </select>
+
+                    <!-- Edit buttons -->
+                    <button type="button" onclick="toggleeditModeforLocations(<?= $volunteer->getUserID(); ?>, <?= $volunteer->getVolunteerID(); ?>, <?= $location['ID']; ?>, '<?= addslashes($location['Country']); ?>', '<?= addslashes($location['City']); ?>', '<?= addslashes($location['Area']); ?>')">Edit</button>
+                    <button type="button" onclick="saveLocations(<?= $location['ID']; ?>, <?= $volunteer->getUserID(); ?>, <?= $volunteer->getVolunteerID(); ?>, document.querySelectorAll('.area-dropdown'), document.querySelectorAll('.city-dropdown'), document.querySelectorAll('.country-dropdown'))">Save Locations</button>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p>No locations added yet.</p>
+            <!-- Button for adding location if no locations are present -->
+            <!-- <button type="button" onclick="saveLocations(null, <?= $volunteer->getUserID(); ?>, <?= $volunteer->getVolunteerID(); ?>, document.querySelectorAll('.area-dropdown'), document.querySelectorAll('.city-dropdown'), document.querySelectorAll('.country-dropdown'))">Add Location</button> -->
         <?php endif; ?>
-    </div>
+        <button type="button" onclick="saveLocations(null, <?= $volunteer->getUserID(); ?>, <?= $volunteer->getVolunteerID(); ?>, document.querySelectorAll('.area-dropdown'), document.querySelectorAll('.city-dropdown'), document.querySelectorAll('.country-dropdown'))">Add Location</button>
 
-    <!-- Add location section -->
-    <div id="additional-locations">
-        <!-- Initial location dropdowns -->
-        <div class="location-box">
-            <select class="country-dropdown" name="locations[0][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
-                <option value="">Select Country</option>
-            </select>
-            <select class="city-dropdown" name="locations[0][city]" onchange="handleCityChange(this, this.nextElementSibling)">
-                <option value="">Select City</option>
-            </select>
-            <select class="area-dropdown" name="locations[0][area]">
-                <option value="">Select Area</option>
-            </select>
-        </div>
     </div>
-
-    <button type="button" onclick="addLocation()">Add Location</button>
-    <button type="button" onclick="saveLocations(
-    <?= $volunteer->getUserID(); ?>,
-        <?= $volunteer->getVolunteerID(); ?>,
-        document.querySelectorAll('.area-dropdown')
-    )">Save Locations</button>
 </form>
 
-
-
-                
-
-               
-        </div>
-
-        <!-- Emergency Contacts Section -->
-        <div class="section">
+<!-- Emergency Contacts Section -->
+<div class="section">
     <h2>Emergency Contacts</h2>
     <form id="emergencyContactForm">
-    <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
-    <div class="form-row">
-        <div>
-            <label for="ContactName">Contact Name</label>
-            <input type="text" id="ContactName" name="ContactName" required>
+        <input type="hidden" name="VolunteerID" value="<?php echo $volunteer->getVolunteerID(); ?>">
+        <div class="form-row">
+            <div>
+                <label for="ContactName">Contact Name</label>
+                <input type="text" id="ContactName" name="ContactName" required>
+            </div>
+            <div>
+                <label for="ContactPhone">Contact Phone</label>
+                <input type="text" id="ContactPhone" name="ContactPhone" required>
+            </div>
         </div>
-        <div>
-            <label for="ContactPhone">Contact Phone</label>
-            <input type="text" id="ContactPhone" name="ContactPhone" required>
-        </div>
-    </div>
-    <button type="button" onclick="addEmergencyContact(
-        document.getElementById('ContactName').value, 
-        document.getElementById('ContactPhone').value, 
-        <?= $volunteer->getVolunteerID(); ?>
-    )">Add Emergency Contact</button>
-</form>
+        <button type="button" onclick="addEmergencyContact(
+            document.getElementById('ContactName').value, 
+            document.getElementById('ContactPhone').value, 
+            <?= $volunteer->getVolunteerID(); ?>
+        )">Add Emergency Contact</button>
+    </form>
+</div>
 
 
 <div id="contactList">
@@ -261,18 +268,19 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
                 <label for="EventDescription">Event Description</label>
                 <input type="text" id="EventDescription" name="EventDescription" required>
             </div>
-            <div>
-                <label for="EventCountry">Coutry</label>
-                <input type="text" id="EventCountry" name="EventCountry" required>
-            </div>
-            <div>
-                <label for="EventCity">City</label>
-                <input type="text" id="EventCity" name="EventCity" required>
-            </div>
-            <div>
-                <label for="EventArea">Area</label>
-                <input type="text" id="EventArea" name="EventArea" required>
-            </div>
+            <!-- make them a drop down boxees like above -->
+             <div>
+                <label for="EventLocation">Event Location</label>
+            <select class="country-dropdown" name="locations[<?php echo $locationIndex; ?>][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+        <option value="">Select Country</option>
+    </select>
+    <select class="city-dropdown" name="locations[<?php echo $locationIndex; ?>][city]" onchange="handleCityChange(this, this.nextElementSibling)">
+        <option value="">Select City</option>
+    </select>
+    <select class="area-dropdown" name="locations[<?php echo $locationIndex; ?>][area]">
+        <option value="">Select Area</option>
+    </select>
+             </div>
         </div>
         <button type="button" onclick="addVolunteerHistory(
         <?= $volunteer->getVolunteerID(); ?>,
@@ -281,9 +289,9 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
         document.getElementById('volunteerEndDate').value,
         document.getElementById('EventName').value,
         document.getElementById('EventDescription').value,
-        document.getElementById('EventCountry').value,
-        document.getElementById('EventCity').value,
-        document.getElementById('EventArea').value
+        document.querySelectorAll('.country-dropdown'),
+        document.querySelectorAll('.city-dropdown'),
+        document.querySelectorAll('.area-dropdown')
     )">Add Volunteer History</button>
     </form>
 
@@ -298,49 +306,80 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
                         <?= htmlspecialchars($volunteerHistory->get_event()->get_organization_name()); ?>
                     </span>
                     <input type="text" id="organizationNameEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="organizationName" value="<?= htmlspecialchars($volunteerHistory->get_event()->get_organization_name()); ?>" style="display:none;">
+                
                 </h4>
-                <p>
+                <br>
+                
                     <strong>Start Date:</strong>
                     <span id="startDateDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
                         <?= htmlspecialchars($volunteerHistory->getStartDate()); ?>
                     </span>
                     <input type="date" id="startDateEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="startDate" value="<?= htmlspecialchars($volunteerHistory->getStartDate()); ?>" style="display:none;">
-                </p>
-                <p>
+                    <br>
                     <strong>End Date:</strong>
                     <span id="endDateDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
                         <?= htmlspecialchars($volunteerHistory->getEndDate()); ?>
                     </span>
                     <input type="date" id="endDateEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="endDate" value="<?= htmlspecialchars($volunteerHistory->getEndDate()); ?>" style="display:none;">
-                </p>
-                <p>
+                    <br>
+                
                     <strong>Event Name:</strong>
                     <span id="eventNameDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
                         <?= htmlspecialchars($volunteerHistory->get_event()->getEventName()); ?>
                     </span>
                     <input type="text" id="eventNameEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="eventName" value="<?= htmlspecialchars($volunteerHistory->get_event()->getEventName()); ?>" style="display:none;">
-                </p>
-                <p>
+                    <br>
                     <strong>Event Description:</strong>
                     <span id="eventDescriptionDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
                         <?= htmlspecialchars($volunteerHistory->get_event()->getEventDescription()); ?>
                     </span>
                     <textarea id="eventDescriptionEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="eventDescription" style="display:none;"><?= htmlspecialchars($volunteerHistory->get_event()->getEventDescription()); ?></textarea>
-                </p>
-                <p>
+                    <br>
                     <strong>Event Location:</strong>
-                    <span id="eventLocationDisplay<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
-                        <?= htmlspecialchars($volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID())); ?>
-                    </span>
-                    <input type="text" id="eventLocationEdit<?= $volunteerHistory->getVolunteerHistoryID(); ?>" name="eventLocation" value="<?= htmlspecialchars($volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID())); ?>" style="display:none;">
-                </p>
+                    <!-- Country -->
+                    <p id="country-display-<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                    <?php $areaName = $volunteerHistory->get_event()->get_location()->Name; ?>
+                        <?php $cityName = $volunteerHistory->get_event()->get_location()->getParentFromChild($areaName); ?>
+                        <?php $countryName = $volunteerHistory->get_event()->get_location()->getParentFromChild($cityName); ?>
+                        <strong>Country:</strong> <?= htmlspecialchars($volunteerHistory->get_event()->get_location()->getParentFromChild($cityName)); ?>
+                    <p id="city-display-<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <strong>City:</strong> <?= htmlspecialchars($volunteerHistory->get_event()->get_location()->getParentFromChild($areaName)); ?>
+                    </p>
 
-                <button type="button" onclick="toggleEditMode(<?= $volunteerHistory->getVolunteerHistoryID(); ?>,  '<?= $volunteerHistory->get_event()->get_organization_name(); ?>', 
+                    
+                    <!-- Area -->
+                    <p id="area-display-<?= $volunteerHistory->getVolunteerHistoryID(); ?>">
+                        <strong>Area:</strong> <?= htmlspecialchars($areaName); ?>
+                    </p>
+               
+                <!-- hidden editable  -->
+                    <select id="country-edit-<?= $location['ID']; ?>" class="country-dropdown" style="display:none;" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+                        <option value="">Select Country</option>
+                        <option value="Country1" <?= $location['Country'] === 'Country1' ? 'selected' : ''; ?>>Country1</option>
+                        <option value="Country2" <?= $location['Country'] === 'Country2' ? 'selected' : ''; ?>>Country2</option>
+                    </select>
+                    <select id="city-edit-<?= $location['ID']; ?>" class="city-dropdown" style="display:none;" onchange="handleCityChange(this, this.nextElementSibling)">
+                        <option value="">Select City</option>
+                        <option value="City1" <?= $location['City'] === 'City1' ? 'selected' : ''; ?>>City1</option>
+                        <option value="City2" <?= $location['City'] === 'City2' ? 'selected' : ''; ?>>City2</option>
+                    </select>
+                    <select id="area-edit-<?= $location['ID']; ?>" class="area-dropdown" style="display:none;">
+                        <option value="">Select Area</option>
+                        <option value="Area1" <?= $location['Area'] === 'Area1' ? 'selected' : ''; ?>>Area1</option>
+                        <option value="Area2" <?= $location['Area'] === 'Area2' ? 'selected' : ''; ?>>Area2</option>
+                    </select>
+
+
+                <button type="button" onclick="toggleEditMode(<?= $location['ID'];?>,
+                <?= $volunteerHistory->getVolunteerHistoryID(); ?>,  '<?= $volunteerHistory->get_event()->get_organization_name(); ?>', 
         '<?= $volunteerHistory->getStartDate(); ?>', 
         '<?= $volunteerHistory->getEndDate(); ?>', 
         '<?= $volunteerHistory->get_event()->getEventName(); ?>', 
         '<?= $volunteerHistory->get_event()->getEventDescription(); ?>', 
-        '<?= $volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID()); ?>')">Update</button>
+        '<?= $areaName;?>',
+        '<?= $cityName;?>',
+        '<?= $countryName?>'
+        )">Update</button>
                 <button type="button" 
     id="saveButton<?= $volunteerHistory->getVolunteerHistoryID(); ?>" 
     style="display:none;" 
@@ -350,9 +389,9 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
         '<?= $volunteerHistory->getEndDate(); ?>', 
         '<?= $volunteerHistory->get_event()->getEventName(); ?>', 
         '<?= $volunteerHistory->get_event()->getEventDescription(); ?>', 
-        '<?= $volunteerHistory->get_event()->getLocationDetails($volunteerHistory->get_event()->getEventID()); ?>', 
-        <?= $volunteerHistory->getVolunteerHistoryID(); ?>
-    )">Save Changes</button>
+        document.querySelectorAll('.area-dropdown'), document.querySelectorAll('.city-dropdown'), 
+        document.querySelectorAll('.country-dropdown')), 
+        '<?= $volunteerHistory->getVolunteerHistoryID(); ?>')">Save Changes</button>
 
 
 
@@ -466,39 +505,53 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
 </html>
 <script>
 
-function saveLocations(UserID, volunteerID, areaDropdowns) {
-    const areas = [];
+function saveLocations(LocationID= null,UserID, volunteerID, areaDropdowns, cityDropdowns, countryDropdowns) {
+    console.log("now saving locations");
+
+    const locations = []; // To store the selected locations
+
+    // Loop through all the dropdowns, assuming they are in corresponding order
+    for (let i = 0; i < areaDropdowns.length; i++) {
+        const areaDropdown = areaDropdowns[i];
+        const cityDropdown = cityDropdowns[i];
+        const countryDropdown = countryDropdowns[i];
+
+        const selectedArea = areaDropdown.value;
+        const selectedCity = cityDropdown.value;
+        const selectedCountry = countryDropdown.value;
+
+        // Check if all values are selected before adding to locations
+        if (selectedArea && selectedCity && selectedCountry) {
+            locations.push({
+                area: selectedArea,
+                city: selectedCity,
+                country: selectedCountry,
+            });
+        }
+    }
+
+    // Prepare the data for the server
     const formData = new FormData();
     formData.append('action', 'addLocation');
     formData.append('VolunteerID', volunteerID);
+    formData.append('UserID', UserID);
+    formData.append('locations', JSON.stringify(locations)); // Convert to JSON string
+    formData.append('LocationID', LocationID);
 
-    // Loop through the area dropdowns and only add the selected areas
-    areaDropdowns.forEach((areaDropdown, index) => {
-        const selectedArea = areaDropdown.value;
-        if (selectedArea) {
-            areas.push(selectedArea); // Add only the selected area
-        }
-    });
-
-    // Append the selected areas as an array to the form data
-    formData.append('areas', JSON.stringify(areas));
-
-    // Send the areas to the server
+    // Send data to the server via fetch
     fetch('VolunteerProfileView.php', {
         method: 'POST',
-        body: formData
+        body: formData,
     })
-    .then(response => response.text())  // You can handle the response as needed
-    .then(data => {
-        // Handle success response (optional)
-        console.log(data);  // You could show a message, refresh the page, etc.
-        // location.reload(); // Uncomment if you want to refresh the page after saving
-    })
-    .catch(error => {
-        // Handle error response
-        console.error('Error:', error);
-    });
+        .then(response => response.text())
+        .then(data => {
+            console.log('Locations saved:', data);
+        })
+        .catch(error => {
+            console.error('Error saving locations:', error);
+        });
 }
+
 
 
 
@@ -684,48 +737,149 @@ document.addEventListener('DOMContentLoaded', fetchCountries);
         });
     }
 
+    function updateLocations(UserID, VolunteerID, locationID, area, city, country) {
+        console.log('Updating location...');
+        console.log('UserID:', UserID);
+        console.log('VolunteerID:', VolunteerID);
+        console.log('LocationID:', locationID);
+        console.log('Area:', area);
+        console.log('City:', city);
+        console.log('Country:', country);
+
+        const locations = []; // To store the selected locations
+
+// Loop through all the dropdowns, assuming they are in corresponding order
+for (let i = 0; i < areaDropdowns.length; i++) {
+    const areaDropdown = areaDropdowns[i];
+    const cityDropdown = cityDropdowns[i];
+    const countryDropdown = countryDropdowns[i];
+
+    const selectedArea = areaDropdown.value;
+    const selectedCity = cityDropdown.value;
+    const selectedCountry = countryDropdown.value;
+
+    // Check if all values are selected before adding to locations
+    if (selectedArea && selectedCity && selectedCountry) {
+        locations.push({
+            area: selectedArea,
+            city: selectedCity,
+            country: selectedCountry,
+        });
+    }
+}
+
+// Prepare the data for the server
+const formData = new FormData();
+formData.append('action', 'addLocation');
+formData.append('VolunteerID', volunteerID);
+formData.append('UserID', UserID);
+formData.append('locations', JSON.stringify(locations)); // Convert to JSON string
+
+    fetch('VolunteerProfileView.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.text())
+        .then(data => {
+            console.log('Location updated:', data);
+        })
+        .catch(error => {
+            console.error('Error updating location:', error);
+        });
 
 
-      function toggleEditMode(id, organizationName, startDate, endDate, eventName, eventDescription, eventLocation) {
-    const displayFields = document.querySelectorAll(`#card${id} span`);
-    const editFields = document.querySelectorAll(`#card${id} input, #card${id} textarea`);
+}
+
+function toggleeditModeforLocations(UserID, VolunteerID, locationID, country, city, area) {
+    console.log('Toggling edit mode for locations...');
+    let updatedValues = {};
+
+    const locationBox = document.querySelector(`#location-${locationID}`);
+    const displayFields = locationBox.querySelectorAll(`p`);
+    const editFields = locationBox.querySelectorAll(`select`);
+    const saveButton = locationBox.querySelector(`button[onclick^="updateLocations"]`);
+
+    // Toggle visibility of display and edit fields
+    displayFields.forEach(field => {
+        field.style.display = field.style.display === 'none' ? '' : 'none';
+    });
+
+    editFields.forEach(field => {
+        field.style.display = field.style.display === 'none' ? '' : 'block';
+        updatedValues[field.id] = field.value;
+        console.log("Field is", field);
+    });
+
+    // Dynamically update the Save button's `onclick` when the dropdowns are visible
+    saveButton.style.display = saveButton.style.display === 'none' ? '' : 'inline-block';
+    console.log("location id to be deleted", locationID);
+
+    // Update the save button's `onclick` with correct values after the loop
+    saveButton.setAttribute('onclick', `updateLocations(
+        ${UserID},
+        ${VolunteerID},
+        ${locationID},
+        "${updatedValues[`area-edit-${locationID}`] || area}",
+        "${updatedValues[`city-edit-${locationID}`] || city}",
+        "${updatedValues[`country-edit-${locationID}`] || country}"
+    )`);
+}
+
+
+
+
+
+function toggleEditMode(locationid, id, organizationName, startDate, endDate, eventName, eventDescription, area, city, country) { 
+    const displayFields = document.querySelectorAll(`#card${id} span, #card${id} p`);
+    const editFields = document.querySelectorAll(`#card${id} input, #card${id} textarea, #card${id} select`);
     const saveButton = document.getElementById(`saveButton${id}`);
+    console.log("now in toggle edit mode");
+    console.log("city is", city);
+    console.log("country is", country);
+    console.log("area is", area);
     
     let updatedValues = {};
     
+    // Toggle the visibility of the display fields
     displayFields.forEach(field => {
-    if (!field.id.includes('Location')) { // Skip fields with 'Location' in their ID
         field.style.display = field.style.display === 'none' ? '' : 'none';
-    }
-});
+    });
 
-    // displayFields.forEach(field => field.style.display = field.style.display === 'none' ? '' : 'none');
-    
+    // Toggle the visibility of the editable fields and set up event listeners for dynamic updates
     editFields.forEach(field => {
         // Set up event listener for each editable field
         field.addEventListener('input', (e) => {
             updatedValues[field.id] = e.target.value;  // Update the value dynamically
             console.log(updatedValues); // Debugging to log the updated values
             console.log(field.id);
+            console.log(locationid);
+
+            // Update the onclick for the save button with the latest dynamic values
             saveButton.setAttribute('onclick', `saveChanges(
-        "${updatedValues['organizationNameEdit' + id] || organizationName}",
-        "${updatedValues['startDateEdit' + id] || startDate}",
-        "${updatedValues['endDateEdit' + id] || endDate}",
-        "${updatedValues['eventNameEdit' + id] || eventName}",
-        "${updatedValues['eventDescriptionEdit' + id] || eventDescription}",
-        "${updatedValues['eventLocationEdit' + id] || eventLocation}",
-        ${id}
-    )`);
+                "${updatedValues['organizationNameEdit' + id] || organizationName}",
+                "${updatedValues['startDateEdit' + id] || startDate}",
+                "${updatedValues['endDateEdit' + id] || endDate}",
+                "${updatedValues['eventNameEdit' + id] || eventName}",
+                "${updatedValues['eventDescriptionEdit' + id] || eventDescription}",
+                "${updatedValues['area-edit-' + locationid] || area}",
+                "${updatedValues['city-edit-' + locationid] || city}",
+                "${updatedValues['country-edit-' + locationid] || country}",
+                ${id},
+            )`);
         });
 
-        field.style.display = field.id.includes('Location') ? field.style.display : (field.style.display === 'none' ? '' : 'none');
-
+        // Toggle the display for the editable fields
+        field.style.display = field.style.display === 'none' ? '' : 'block';
     });
 
-    // make the save button visible
+
+    // Make the save button visible
     saveButton.style.display = saveButton.style.display === 'none' ? '' : 'none';
-   
 }
+
+
+
+
 function toggleEditModeforEmergencyContacts(volunteerID, id, ContactName, ContactPhone) {
     console.log('Toggling edit mode for emergency contacts...');
     const displayFields = document.querySelectorAll(`#contactCard${id} span`);
@@ -894,11 +1048,15 @@ function getCheckedSkillTypes() {
         })
     }
 
-    function saveChanges(OrganizationName, StartDate, EndDate, EventName, EventDescription, EventLocation, VolunteerHistoryID) {
+    function saveChanges(OrganizationName, StartDate, EndDate, EventName, EventDescription, area, city, country, VolunteerHistoryID) {
         console.log('Saving changes...');
 
 
-        console.log("Values to Save: ", OrganizationName, StartDate, EndDate, EventName, EventDescription, EventLocation, VolunteerHistoryID);
+        console.log("Values to Save: ", OrganizationName, StartDate, EndDate, EventName, EventDescription, VolunteerHistoryID);
+
+    
+
+
         formData = new FormData();
         formData.append('action', 'editVolunteerHistory');
         formData.append('VolunteerHistoryID', VolunteerHistoryID);
@@ -907,7 +1065,12 @@ function getCheckedSkillTypes() {
         formData.append('EndDate', EndDate);
         formData.append('EventName', EventName);
         formData.append('EventDescription', EventDescription);
-        formData.append('EventLocation', EventLocation);
+       
+       formData.append('Area', area);
+         formData.append('City', city);
+            formData.append('Country', country);
+       
+  
 
 
         fetch('VolunteerProfileView.php', {
@@ -959,10 +1122,32 @@ function getCheckedSkillTypes() {
     }
 }
 
-    function addVolunteerHistory(VolunteerID, organization, startDate, endDate, eventName, eventDescription, eventCountry, eventCity, eventArea) {
+    function addVolunteerHistory(VolunteerID, organization, startDate, endDate, eventName, eventDescription, countryDropdown, cityDropdown, areaDropdown) {
         console.log('Adding volunteer history...');
         console.log('VolunteerID:', VolunteerID);
+        const locations = []; // To store the selected locations
+        const areaDropdowns = document.querySelectorAll('.area-dropdown');
+const cityDropdowns = document.querySelectorAll('.city-dropdown');
+const countryDropdowns = document.querySelectorAll('.country-dropdown');
+    // Loop through all the dropdowns, assuming they are in corresponding order
+    for (let i = 0; i < areaDropdowns.length; i++) {
+        const areaDropdown = areaDropdowns[i];
+        const cityDropdown = cityDropdowns[i];
+        const countryDropdown = countryDropdowns[i];
 
+        const selectedArea = areaDropdown.value;
+        const selectedCity = cityDropdown.value;
+        const selectedCountry = countryDropdown.value;
+
+        // Check if all values are selected before adding to locations
+        if (selectedArea && selectedCity && selectedCountry) {
+            locations.push({
+                area: selectedArea,
+                city: selectedCity,
+                country: selectedCountry,
+            });
+        }
+    }
 
         const formData = new FormData();
         formData.append('action', 'addVolunteerHistory');
@@ -971,9 +1156,7 @@ function getCheckedSkillTypes() {
         formData.append('volunteerEndDate', endDate);
         formData.append('EventName', eventName);
         formData.append('EventDescription', eventDescription);
-        formData.append('EventCountry', eventCountry);
-        formData.append('EventCity', eventCity);
-        formData.append('EventArea', eventArea);
+        formData.append('locations', JSON.stringify(locations)); // Convert to JSON string
         formData.append('VolunteerID', VolunteerID);
 
 
@@ -1125,28 +1308,6 @@ function getCheckedSkillTypes() {
             document.getElementById('volunteerDate').value = '';
         }
     });
-    function addLocation() {
-    const additionalLocations = document.getElementById('additional-locations');
-    const locationIndex = additionalLocations.children.length;
-
-    const locationBox = document.createElement('div');
-    locationBox.className = 'location-box';
-
-    locationBox.innerHTML = `
-        <select class="country-dropdown" name="locations[${locationIndex}][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
-            <option value="">Select Country</option>
-        </select>
-        <select class="city-dropdown" name="locations[${locationIndex}][city]" onchange="handleCityChange(this, this.nextElementSibling)">
-            <option value="">Select City</option>
-        </select>
-        <select class="area-dropdown" name="locations[${locationIndex}][area]">
-            <option value="">Select Area</option>
-        </select>
-    `;
-
-    additionalLocations.appendChild(locationBox);
-    fetchCountries(); // Populate countries for the new dropdowns
-}
 
 
 

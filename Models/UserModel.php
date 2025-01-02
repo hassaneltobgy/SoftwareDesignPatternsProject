@@ -350,13 +350,57 @@ class User {
 
 
 
-    public function addLocation($AddressID, $UserID) {
+    public function addLocation($AddressID, $UserID, $locationID=null) {
         $this->conn = Database::getInstance()->getConnection();
-        $query = "INSERT INTO User_Address (UserID, AddressID) VALUES (?, ?)";
+        echo "address id is $AddressID";
+        echo "location id is $locationID";
+
+    //    if location id is not null, check if it exists in user_address, if so then delete its entry
+        if ($locationID !== null) {
+            echo "location id is not null";
+            $query = "SELECT * FROM User_Address WHERE UserID = ? AND AddressID = ?";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("ii", $UserID, $locationID);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $query = "DELETE FROM User_Address WHERE UserID = ? AND AddressID = ?";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bind_param("ii", $UserID, $locationID);
+                $stmt->execute();
+            }
+        }
+        // add an entry in user_address table or update it  first check if the entry exists by checking the user id and address id
+        $query = "SELECT * FROM User_Address WHERE UserID = ? AND AddressID = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("ii", $UserID, $AddressID);
-        
-        return $stmt->execute();
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            echo "Location exists";
+            // update the entry
+            $query = "UPDATE User_Address SET AddressID = ? WHERE UserID = ?";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("ii", $AddressID, $UserID);
+            $stmt->execute();
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            echo "Location does not exist";
+            // add the entry
+            $query = "INSERT INTO User_Address (UserID, AddressID) VALUES (?, ?)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("ii", $UserID, $AddressID);
+            $stmt->execute();
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
     
     public static function removeLocation($AddressID, $userID) {
@@ -446,6 +490,9 @@ class User {
 
     public  function updateLocation($userID, $country,$city,$area){
         echo "updating location";
+        if ($this->conn === null) {
+            $this->conn = Database::getInstance()->getConnection();
+        }
         $locationCountryId= Location::getLocationID($country);
         $locationCityId= Location::getLocationID($city);
         $locationAreaId= Location::getLocationID($area);

@@ -49,60 +49,37 @@ class VolunteerController {
     }
 
 
-    public function addLocation($areas, $countries, $cities, $volunteerID, $userid)
+    public function addLocation($area, $country, $city, $volunteerID, $userid, $locationID)
 {
-    // Check if $areas is already an array
-    if (is_array($areas)) {
-        echo "Now in addLocation, areas are: ";
-        print_r($areas);  // Print the array for debugging
+    echo "country is " . $country;
+    echo "city is " . $city;
+    echo "area is " . $area;
+
 
         $Volunteer = new Volunteer();
 
-        // Process the areas array
-        foreach ($areas as $area) {
-            // Get the ID of the area
-            $areaID = Location::getLocationID($area);
-            echo "AreaID is " . $areaID;
-            if ($areaID == null) {
-                echo "AreaID is null";
-                // get index of the area in the array
-                $index = array_search($area, $areas);
-                $location = Location::create($countries[$index], null);
-                $countryID = $location->AddressID;
+      
+        $areaID = Location::getLocationID($area);
+        echo "AreaID is " . $areaID;
+        if ($areaID == null) {
+            echo "AreaID is null";
+            
+            $location = Location::create(Name:$country, ParentID:null);
+            $countryID = $location->AddressID;
 
-                $location = Location::create($cities[$index], $countryID);
-                $cityID = $location->AddressID;
+            $location = Location::create(Name:$city, ParentID:$countryID);
+            $cityID = $location->AddressID;
 
-                $location = Location::create($area, $cityID);
-                $areaID = $location->AddressID;
+            $location = Location::create(Name:$area, ParentID:$cityID);
+            $areaID = $location->AddressID;
 
 
-               
-            }
-            $Volunteer->addLocation($areaID, $userid);
+            
         }
-    } else {
-        // If $areas is not an array, decode it (it must be a JSON string)
-        echo "Raw areas received: " . $areas . "<br>"; // Print raw data for debugging
-        $areas = json_decode($areas, true); // Decode the JSON string into an array
-
-        if (is_array($areas)) {
-            echo "Decoded areas are: ";
-            print_r($areas); // Print the decoded array for debugging
-
-            $Volunteer = new Volunteer();
-
-            // Process the decoded array
-            foreach ($areas as $area) {
-                // Get the ID of the area
-                $areaID = Location::getLocationID($area);
-                echo "AreaID is " . $areaID;
-                $Volunteer->addLocation($areaID, $userid);
-            }
-        } else {
-            echo "Error: Areas is not a valid JSON string or is empty!";
-        }
-    }
+        $Volunteer->addLocation($areaID, $userid, $locationID);
+        
+    
+    
 }
 
     
@@ -149,23 +126,24 @@ class VolunteerController {
         $volunteer->remove_history($VolunteerHistoryID);
     }
 
-    public function editVolunteerHistory($VolunteerHistoryID, $OrganizationName, $StartDate, $EndDate, $EventName, $EventDescription, $EventLocation) {
+    public function editVolunteerHistory($VolunteerHistoryID, $OrganizationName, $StartDate, $EndDate, $EventName, $EventDescription, $area, $city, $country) {
         $volunteerHistory = new VolunteerHistory($VolunteerHistoryID);
-
+        echo "country is " . $country;
+        echo "city is " . $city;
+        echo "area is " . $area;
       
-        $location = explode(",", $EventLocation);
 
-        // trim all the white spaces
-        $location[0] = trim($location[0]);
-        $location[1] = trim($location[1]);
-        $location[2] = trim($location[2]);
-        $locationidCountry = Location::getLocationID($location[0]); // parent id to city
-        $locationidCity = Location::getLocationID($location[1]); // parent id to area
-        $locationidArea = Location::getLocationID($location[2]);
+        // // trim all the white spaces
+        // $location[0] = trim($location[0]);
+        // $location[1] = trim($location[1]);
+        // $location[2] = trim($location[2]);
+        $locationidCountry = Location::getLocationID($country); // parent id to city
+        $locationidCity = Location::getLocationID($city); // parent id to area
+        $locationidArea = Location::getLocationID($area);
 
 
         // create an object for location that has parent id to city
-        $locationEvent = new Location($locationidArea,$location[2], $locationidCity);
+        $locationEvent = new Location($locationidArea,$area, $locationidCity);
        
 
         $event = Event::create($EventName, $StartDate, $locationEvent, $EventDescription, $OrganizationName);
@@ -325,9 +303,16 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
 
         }
     }
-}
+    }
+
+    public function updateLocation($area, $country, $city, $volunteerID, $userID) {
+        $Volunteer = new Volunteer();
+        $areaID = Location::getLocationID($area);
+        $Volunteer->updateLocation( $userID, $country, $city, $area);
+
     
     }
+}
 
 
 
@@ -375,16 +360,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $id = $_POST['LocationID'];
         $VolunteerController->deleteLocation($id, $_POST['UserID']);
         break;
+
+    case 'updateLocation':
+
+        $userID = $_POST['UserID'];
+        $volunteerID = $_POST['VolunteerID'];
+        $area = $_POST['Area'];
+        $city = $_POST['City'];
+        $country = $_POST['Country'];
+        $VolunteerController->updateLocation($area, $country, $city, $volunteerID, $userID);
+        break;
+
+
     
     case 'addLocation':
         echo "I HAVE RECEIVED ACTION ADD LOCATION";
         $userid = $_POST['UserID'];
+        $locationID = $_POST['LocationID'];
         $volunteerID = $_POST['VolunteerID'];
-        $areas = $_POST['areas']?? [];
-        $countries = $_POST['countries']?? [];
-        $cities = $_POST['cities']?? [];
+        $locationsJson = $_POST['locations']; // Get the JSON string
+        $locations = json_decode($locationsJson, true); // Decode JSON string into PHP array
 
-        $VolunteerController->addLocation($areas,$countries, $cities, $volunteerID, $userid);
+        if (is_array($locations)) { // Ensure it's an array
+            foreach ($locations as $location) {
+                $area = $location['area'];         // Access area
+                $city = $location['city'];         // Access city
+                $country = $location['country'];   // Access country
+
+                // Do something with the area, city, and country
+                echo "Area: $area, City: $city, Country: $country\n";
+            }
+        } else {
+            echo "Locationn data is $locationsJson\n";
+            echo "Locations data is invalid!";
+        }
+
+        $VolunteerController->addLocation($area,$country, $city, $volunteerID, $userid, $locationID);
         break;
 
     
@@ -407,9 +418,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     
     case 'addVolunteerHistory':
+        $locationsJson = $_POST['locations']; // Get the JSON string
+
+        $locations = json_decode($locationsJson, true); // Decode JSON string into PHP array
+
+        if (is_array($locations)) { // Ensure it's an array
+            foreach ($locations as $location) {
+                $area = $location['area'];         // Access area
+                $city = $location['city'];         // Access city
+                $country = $location['country'];   // Access country
+
+                // Do something with the area, city, and country
+                echo "Area: $area, City: $city, Country: $country\n";
+            }
+        } else {
+            echo "Locationn data is $locationsJson\n";
+            echo "Locations data is invalid!";
+        }
         $VolunteerController->addVolunteerHistory( $_POST['VolunteerID'], $_POST['volunteerOrganization'],
          $_POST['volunteerStartDate'], $_POST['volunteerEndDate'], $_POST['EventName'], $_POST['EventDescription'], 
-        $_POST['EventCountry'], $_POST['EventCity'], $_POST['EventArea']);
+        $country, $city, $area);
         break;
     
     case 'deleteVolunteerHistory':
@@ -418,10 +446,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 
     case 'editVolunteerHistory':
-        echo "editHistory";
+       $city  = $_POST['City'];
+         $area = $_POST['Area'];
+            $country = $_POST['Country'];
+
         $VolunteerController->editVolunteerHistory($_POST['VolunteerHistoryID'], $_POST['OrganizationName'],
-        $_POST['StartDate'], $_POST['EndDate'], $_POST['EventName'], $_POST['EventDescription'], 
-        $_POST['EventLocation']);
+        $_POST['StartDate'], $_POST['EndDate'], $_POST['EventName'], $_POST['EventDescription'], $area, $city, $country);
         break;
 
     case 'addSkill':
