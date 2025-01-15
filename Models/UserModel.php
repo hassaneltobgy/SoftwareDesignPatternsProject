@@ -20,6 +20,7 @@ class User {
     public $Locations = [];
     public $NotificationTypes = [];
     public $UserType;
+    public $Notications = [];
 
     public function __construct($id = null) {
         $this->conn = Database::getInstance()->getConnection();

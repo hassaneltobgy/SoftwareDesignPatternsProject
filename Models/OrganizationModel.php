@@ -40,7 +40,7 @@ class Organization extends User
                 $this->OrganizationWebsite = $row['OrganizationWebsite'];
                 $this->OrganizationType = new OrganizationType($row['OrganizationTypeID']);
             } else {
-                echo "No volunteer found with ID: $id";
+                echo "No Organization found with ID: $id";
             }
 
             $stmt->close();
@@ -70,6 +70,36 @@ class Organization extends User
     {
         $this->OrganizationID = $OrganizationID;
     }
+
+    public function AcceptApplications($applicationIDs){
+        $conn = Database::getInstance()->getConnection();
+        for ($i = 0; $i < count($applicationIDs); $i++) {
+            $query = "UPDATE Application SET ApplicationStatus = 'Accepted' WHERE ApplicationID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $applicationIDs[$i]);
+            $stmt->execute();
+            $stmt->close();
+
+            // then send notification to the volunteers whose applications were accepted, get applicationid from organization_applicationdetails 
+            // then get volunteer id from table apply for event which has application id and then send notification to the volunteer 
+        }
+    }
+    public static function GetOrganizationFromApplication($applicationID)
+    {
+        $conn = Database::getInstance()->getConnection();
+        $query = "SELECT OrganizationID FROM Applicationdetails_Organization WHERE ApplicationID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $applicationID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $OrganizationID = $row['OrganizationID'];
+
+        // then get the organization object
+        $Organization = new Organization($OrganizationID);
+        return $Organization;
+    }
+
     public static function addEvent($OrganizationName, $EventID)
     {
         echo "now adding event to organization";
@@ -154,6 +184,8 @@ class Organization extends User
         $stmt->close();
     }
     
+   
+
     public static function getOrganizationIDByName($OrganizationName)
     {
         $conn = Database::getInstance()->getConnection();
@@ -221,6 +253,8 @@ class Organization extends User
 
 
             $Organization = new Organization();
+            $Organization->OrganizationID = $conn->insert_id;
+            $Organization->UserID = $userCreated->UserID;
             $Organization->FirstName = $FirstName;
             $Organization->LastName = $LastName;
             $Organization->Email = $Email;
@@ -453,6 +487,18 @@ public function delete(){
     } else {
         return false;
     }
+}
+public static function getallorganizationNames(){
+    $sql = "SELECT OrganizationName FROM Organization";
+    $stmt = Database::getInstance()->getConnection()->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $organizationNames = [];
+    while ($row = $result->fetch_assoc()) {
+        array_push($organizationNames, $row['OrganizationName']);
+    }
+    return $organizationNames;
+
 }
 }
 

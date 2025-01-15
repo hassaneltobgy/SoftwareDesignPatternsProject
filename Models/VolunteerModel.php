@@ -27,7 +27,6 @@ class Volunteer extends User {
         } else if (empty($id)) {
             return;
         } else {
-            echo "Now in the volunteer constructor  ";
             $sql = "SELECT * FROM $this->table_name WHERE VolunteerID = ?";
             $stmt = $this->conn->prepare($sql);
             $stmt->bind_param("i", $id);
@@ -47,7 +46,7 @@ class Volunteer extends User {
                 $this->volunteer_history = $this->get_history();
                 $this->badge = $this->get_badge();
                 $this->EmergencyContacts = $this->getEmergencyContacts();
-                echo "BADGE TITLE IS " . $this->badge->get_title();
+                // echo "BADGE TITLE IS " . $this->badge->get_title();
             } else {
                 echo "No volunteer found with ID: $id";
             }

@@ -2,6 +2,9 @@
 require_once '../Models/VolunteerModel.php';
 require_once '../Models/AdminModel.php';
 require_once '../Models/OrganizationModel.php';
+require_once '../Models/NotificationObserver.php';
+require_once '../Models/NotificationModel.php';
+require_once '../Models/NotificationType.php';
 interface RegisterMethodStrategy
 {
     public function register(
@@ -47,7 +50,10 @@ class FacebookRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Facebook as a volunteer";
+                return [
+                    'message' => "Successfully registered with Facebook as a volunteer",
+                    'user' => $volunteer
+                ];
         }
         else if ($userType === 'Organization') {
             $organization = Organization::create_Organization(
@@ -60,7 +66,10 @@ class FacebookRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
-                return "Successfully registered with Facebook as an organization";
+                return [ 
+                    'message' => "Successfully registered with Facebook as an organization",
+                    'user' => $organization
+                ];
 
         }
         else if ($userType === 'Admin') {
@@ -74,7 +83,10 @@ class FacebookRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
-                return "Successfully registered with Facebook as an admin";
+                return [
+                    'message' => "Successfully registered with Facebook as an admin",
+                    'user' => $admin
+                ];
         }
        
     }
@@ -110,7 +122,10 @@ class GoogleRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Facebook as a volunteer";
+                return [ 
+                    'message' => "Successfully registered with Google as a volunteer",
+                    'user' => $volunteer
+                ];
         }
         else if ($userType === 'Organization') {
             $organization = Organization::create_Organization(
@@ -123,7 +138,10 @@ class GoogleRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
-                return "Successfully registered with Facebook as an organization";
+                return [
+                    'message' => "Successfully registered with Facebook as an organization",
+                    'user' => $organization
+                ];
 
         }
         else if ($userType === 'Admin') {
@@ -137,7 +155,10 @@ class GoogleRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
-                return "Successfully registered with Facebook as an admin";
+                return [
+                    'message' => "Successfully registered with Facebook as an admin",
+                    'user' => $admin
+                ];
         }
 
 
@@ -175,7 +196,10 @@ class EmailRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE  );
-                return "Successfully registered with Facebook as a volunteer";
+                return [
+                    'message' => "Successfully registered with Facebook as a volunteer",
+                    'user' => $volunteer
+                ];
         }
         else if ($userType === 'Organization') {
             $organization = Organization::create_Organization(
@@ -188,7 +212,10 @@ class EmailRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
-                return "Successfully registered with Facebook as an organization";
+                return [
+                    'message' => "Successfully registered with Facebook as an organization",
+                    'user' => $organization
+                ];
 
         }
         else if ($userType === 'Admin') {
@@ -202,7 +229,10 @@ class EmailRegister implements RegisterMethodStrategy
                 $password, 
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
-                return "Successfully registered with Facebook as an admin";
+                return [
+                    'message' => "Successfully registered with Facebook as an admin",
+                    'user' => $admin
+                ];
         }
            return null;
         }
@@ -235,7 +265,10 @@ class RegisterMethodContext
         String $ACCOUNT_CREATION_DATE
     )
     {
-        return $this->strategy->register(
+
+        
+
+        $result =  $this->strategy->register(
             $FirstName,
             $LastName,
             $Email,
@@ -248,5 +281,25 @@ class RegisterMethodContext
             $ACCOUNT_CREATION_DATE
 
         );
+        $msg = $result['message'];
+        $user = $result['user'];
+
+        // send an email to the user after registration is successful because this the default user type
+        // insert in table user_notificationtype the notification type id and the user id
+
+        // send a notification to the user after registration is successful
+        if ($msg !== null) {
+            $conn = Database::getInstance()->getConnection();
+            $NotificationId = NotificationType::getNotificationTypeIdByName("email");
+        
+            $user->add_notification_type($NotificationId);
+
+           
+            
+            $UserRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
+            $emailobsrever = new NotifyByEmailObserver($UserRegisteredNotificationService);
+            $UserRegisteredNotificationService->notify();
+        }
+        return $msg;
     }
 }

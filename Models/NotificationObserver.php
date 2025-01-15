@@ -1,5 +1,6 @@
 <?php
-
+require_once 'Database.php';
+require_once 'NotificationModel.php';
 
 interface ISubject {
     public function add(IObserver $observer);
@@ -7,7 +8,7 @@ interface ISubject {
 }
 
 interface IObserver {
-    public function sendNotification();
+    public function sendNotification($Msg, $Users);
 }
 
 
@@ -17,41 +18,23 @@ class NotifyBySMSObserver implements IObserver {
     private $observerType = "NotifyBySMSObserver";
 
 
-    public function __construct(ISubject $subject, $conn, $subjectId) {
+    public function __construct(ISubject $subject) {
         $this->subject = $subject;
         $this->conn = Database::getInstance()->getConnection();
         $this->subject->add($this);
 
-
-        // Check if observer type is already linked to this subject
-       $stmt = $this->conn->prepare("SELECT id FROM Observers WHERE observer_type = ? AND subject_id = ?");
-       $stmt->bind_param("si", $this->observerType, $subjectId);
-       $stmt->execute();
-       $stmt->store_result();
-
-       // Only insert if there is no existing link
-       if ($stmt->num_rows === 0) {
-           $stmt->close();
-           $stmt = $this->conn->prepare("INSERT INTO Observers (observer_type, subject_id) VALUES (?, ?)");
-           $stmt->bind_param("si", $this->observerType, $subjectId);
-           $stmt->execute();
-       }
-       $stmt->close();
-
     }
 
-    public function sendNotification() {
-        $this->storeNotification("SMS", "Notify by SMS");
-        echo "SMS notification sent\n";
+    public function sendNotification($Msg, $Users) {
+        
+
+        for ($i = 0; $i < count($Users); $i++) {
+            // Send SMS notification using Twilio or any other SMS gateway
+            Notification::storeNotification("sms", $Msg, $Users[$i]->UserID);
+        }
     }
 
-    private function storeNotification($type, $message) {
-        $stmt = $this->conn->prepare("INSERT INTO Notifications (type, message) VALUES (?, ?)");
-        $stmt->bind_param("ss", $type, $message);
-        $stmt->execute();
-        $stmt->close();
-        echo "Notification stored in DB: $message\n";
-    }
+    
 }
 
 class NotifyByEmailObserver implements IObserver {
@@ -59,39 +42,22 @@ class NotifyByEmailObserver implements IObserver {
     private $conn;
     private $observerType = "NotifyByEmailObserver";
 
-    public function __construct(ISubject $subject, $conn, $subjectId) {
+    public function __construct(ISubject $subject) {
         $this->subject = $subject;
         $this->conn = Database::getInstance()->getConnection();
         $this->subject->add($this);
-
-       // Check if observer type is already linked to this subject
-       $stmt = $this->conn->prepare("SELECT id FROM Observers WHERE observer_type = ? AND subject_id = ?");
-       $stmt->bind_param("si", $this->observerType, $subjectId);
-       $stmt->execute();
-       $stmt->store_result();
-
-       // Only insert if there is no existing link
-       if ($stmt->num_rows === 0) {
-           $stmt->close();
-           $stmt = $this->conn->prepare("INSERT INTO Observers (observer_type, subject_id) VALUES (?, ?)");
-           $stmt->bind_param("si", $this->observerType, $subjectId);
-           $stmt->execute();
-       }
-       $stmt->close();
     }
 
-    public function sendNotification() {
-        $this->storeNotification("Email", "Notify by Email");
-        echo "Email notification sent\n";
+    public function sendNotification($Msg, $Users) {
+
+        // Send Email notification using PHPMailer or any other email library
+
+        for ($i = 0; $i < count($Users); $i++) {
+            Notification::storeNotification("email", $Msg, $Users[$i]->UserID);
+        }
     }
 
-    private function storeNotification($type, $message) {
-        $stmt = $this->conn->prepare("INSERT INTO Notifications (type, message) VALUES (?, ?)");
-        $stmt->bind_param("ss", $type, $message);
-        $stmt->execute();
-        $stmt->close();
-        echo "Notification stored in DB: $message\n";
-    }
+ 
 }
 
 class NotifyByInAppObserver implements IObserver {
@@ -99,47 +65,30 @@ class NotifyByInAppObserver implements IObserver {
     private $conn;
     private $observerType = "NotifyByInAppObserver";
 
-    public function __construct(ISubject $subject, $conn, $subjectId) {
+    public function __construct(ISubject $subject) {
         $this->subject = $subject;
         $this->conn = Database::getInstance()->getConnection();
         $this->subject->add($this);
 
-        // Check if observer type is already linked to this subject
-       $stmt = $this->conn->prepare("SELECT id FROM Observers WHERE observer_type = ? AND subject_id = ?");
-       $stmt->bind_param("si", $this->observerType, $subjectId);
-       $stmt->execute();
-       $stmt->store_result();
-
-       // Only insert if there is no existing link
-       if ($stmt->num_rows === 0) {
-           $stmt->close();
-           $stmt = $this->conn->prepare("INSERT INTO Observers (observer_type, subject_id) VALUES (?, ?)");
-           $stmt->bind_param("si", $this->observerType, $subjectId);
-           $stmt->execute();
-       }
-       $stmt->close();
 
     }
 
-    public function sendNotification() {
-        $this->storeNotification("InApp", "Notify by InApp");
-        echo "InApp notification sent\n";
+    public function sendNotification($Msg, $Users) {
+        // Send In-App notification using Firebase Cloud Messaging or any other push notification service
+        for ($i = 0; $i < count($Users); $i++) {
+            Notification::storeNotification("push notification", $Msg, $Users[$i]->UserID);
+        }
     }
 
-    private function storeNotification($type, $message) {
-        $stmt = $this->conn->prepare("INSERT INTO Notifications (type, message) VALUES (?, ?)");
-        $stmt->bind_param("ss", $type, $message);
-        $stmt->execute();
-        $stmt->close();
-        echo "Notification stored in DB: $message\n";
-    }
 }
 
 
-class ConcreteSubject implements ISubject {
-    private $observers = [];
+class NotificationService implements ISubject {
+    protected $observers = [];
+    protected $Users = [];
     private $conn;
-    public function __construct($conn) {
+    public function __construct($Users) {
+        $this->Users = $Users;
         $this->conn = Database::getInstance()->getConnection();
     }
 
@@ -156,7 +105,7 @@ class ConcreteSubject implements ISubject {
         $stmt = $this->conn->prepare("INSERT INTO Subjects (name, description) VALUES (?, ?)");
         $stmt->bind_param("ss", $name, $description);
         $stmt->execute();
-        $subjectId = $stmt->insert_id; // Get the auto-generated subject ID
+        $subjectId = $stmt->insert_id; 
         $stmt->close();
 
         return $subjectId;
@@ -174,6 +123,87 @@ class ConcreteSubject implements ISubject {
         $stmt->close();
     }
 
+
+
 }
+
+class ApplicationSubmittedNotificationService extends NotificationService {
+    public function __construct($Users) {
+        parent::__construct($Users);
+        
+    }
+    public function notify() {
+        $Msg = "Application Submitted Successfully, 
+        Your Application is under review, we will notify you once it is approved.
+        ";
+        foreach ($this->observers as $observer) {
+            //users here is a list of volunteers 
+            $observer->sendNotification($Msg, $this->Users);
+        }
+    }
+}
+class UserRegisteredNotificationService extends NotificationService {
+    public function __construct($Users) {
+        parent::__construct($Users);
+    }
+    public function notify() {
+        $Msg = "Welcome to our platform, you have successfully registered your account.";
+        foreach ($this->observers as $observer) {
+            // users here is a list of volunteers 
+            $observer->sendNotification($Msg, $this->Users);
+        }
+    }
+
+}
+class ApplicationAcceptedNotificationService extends NotificationService {
+    private $OrganizationName;
+    private $EventName;
+    public function __construct($Users, $OrganizationName, $EventName) {
+        $this->OrganizationName = $OrganizationName;
+        $this->EventName = $EventName;
+        parent::__construct($Users);
+    }
+    public function notify() {
+        $Msg = "Congratulations, your application for $this->EventName organized by $this->OrganizationName has been accepted.";
+        foreach ($this->observers as $observer) {
+            // users here is a list of volunteers
+            $observer->sendNotification($Msg, $this->Users);
+        }
+    }
+}
+    class ApplicationSubmittedfromVolunteerNotificationService extends NotificationService {
+        private $volunteerid;
+        public function __construct($volunteerid, $Users) {
+            $this->volunteerid = $volunteerid;
+            parent::__construct($Users);
+        }
+        public function notify() {
+            $Msg = "A new Application has been submitted by a volunteer with id $this->volunteerid, please review it.";
+            foreach ($this->observers as $observer) {
+                //users here is a list of only one organization
+                $observer->sendNotification($Msg, $this->Users);
+            }
+        }
+    }
+
+    class EventCreatedNotificationService extends NotificationService {
+        private $OrganizationName;
+        private $EventName;
+        public function __construct($Users, $OrganizationName, $EventName) {
+            $this->OrganizationName = $OrganizationName;
+            $this->EventName = $EventName;
+            parent::__construct($Users);
+        }
+        public function notify() {
+            $Msg = "An event $this->EventName has been created by $this->OrganizationName.";
+            foreach ($this->observers as $observer) {
+                //users here is a list of all volunteers
+              $Volunteers = Volunteer::getAllVolunteers();
+                $observer->sendNotification($Msg, $Volunteers);
+            }
+        }
+    }
+
+
 
 

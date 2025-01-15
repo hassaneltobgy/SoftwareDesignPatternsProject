@@ -7,6 +7,7 @@ require_once '../Models/EventFeedbackModel.php';
 require_once '../Models/SkillTypeModel.php';
 require_once '../Models/SkillsModel.php';
 require_once '../Models/NotificationType.php';
+require_once '../Models/OrganizationModel.php';
 
 class VolunteerController {
     private $VolunteerModel;
@@ -96,6 +97,9 @@ class VolunteerController {
     public function deleteEmergencyContact($volunteerID, $contactID) {
         $volunteer = new Volunteer($volunteerID);
         $volunteer->removeEmergencyContact($contactID);
+    }
+    public function getallorganizationNames() {
+        return Organization::getallorganizationNames();
     }
    
     public function addVolunteerHistory($VolunteerID, $volunteerOrganization, $volunteerStartDate, $volunteerEndDate, $EventName, $EventDescription, $EventCountry, $EventCity, $EventArea) {

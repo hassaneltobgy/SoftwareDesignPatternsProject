@@ -17,14 +17,14 @@ class ApplicationDetails
     }
 
 
-    public function createApplicationDetails($applicationID, $applicationDate, $eventID, $applicationStatusID, $applyForEventID) {
-        $sql = "INSERT INTO" . $this->table . "(ApplicationID, ApplicationDate, EventID, ApplicationStatusID, ApplyForEventID) VALUES (?, ?, ?, ?, ?)";
+    public function createApplicationDetails( $applicationDate, $eventID, $applicationStatusID, $applyForEventID) {
+        $sql = "INSERT INTO" . $this->table . "( ApplicationDate, EventID, ApplicationStatusID, ApplyForEventID) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
     
          
-        $stmt->bind_param("iisii", $applicationID, $applicationDate, $eventID, $applicationStatusID, $applyForEventID);
+        $stmt->bind_param("isii",  $applicationDate, $eventID, $applicationStatusID, $applyForEventID);
         if ($stmt->execute()) {
-            $this->id = $this->conn->insert_id;
+            $this->ApplicationDetailsID = $this->conn->insert_id;
             return true; // Creation successful
         } else {
             
@@ -33,7 +33,49 @@ class ApplicationDetails
         
     }
 
-   
+    //Submit Application that will create a new application record in the database and send a notification to the applicant
+   public function submitApplication($applicationDate, $eventID, $applicationStatusID, $applyForEventID, $volunteerID) 
+   {
+        $applicationID= $this->createApplicationDetails($applicationDate, $eventID, $applicationStatusID, $applyForEventID);
+        $volunteer = new Volunteer($volunteerID);
+        $notificationService = new ApplicationSubmittedNotificationService([$volunteer]);
+        // get notification types that the volunteer has 
+        $NotificationTypes = User:: get_notification_types($volunteer->UserID);
+        for ($i = 0; $i < count($NotificationTypes); $i++) {
+            if ($NotificationTypes[$i]->TypeName == "sms"){
+                $smsObserver = new NotifyBySMSObserver($notificationService);
+            }
+            else if ($NotificationTypes[$i]->TypeName == "email"){
+                $emailObserver = new NotifyByEmailObserver($notificationService);
+            }
+            else if ($NotificationTypes[$i]->TypeName == "push notifications"){
+                $inAppObserver = new NotifyByInAppObserver($notificationService);
+            }
+
+        }
+
+        $notificationService->notify();
+        
+        
+        $organization = Organization::GetOrganizationFromApplication($applicationID);
+        $notifiicationServiceForOrganization = new ApplicationSubmittedfromVolunteerNotificationService(volunteerid:$volunteerID, Users: [$organization]);
+        // get the notification types that the organization has 
+        $NotificationTypes = User:: get_notification_types($organization->UserID);
+        for ($i = 0; $i < count($NotificationTypes); $i++) {
+            if ($NotificationTypes[$i]->TypeName == "sms"){
+                $smsObserver = new NotifyBySMSObserver($notifiicationServiceForOrganization);
+            }
+            else if ($NotificationTypes[$i]->TypeName == "email"){
+                $emailObserver = new NotifyByEmailObserver($notifiicationServiceForOrganization);
+            }
+            else if ($NotificationTypes[$i]->TypeName == "push notifications"){
+                $inAppObserver = new NotifyByInAppObserver($notifiicationServiceForOrganization);
+            }
+
+        }
+        
+        $notifiicationServiceForOrganization->notify();
+    }
 
 
     public function read_all()
@@ -59,29 +101,7 @@ class ApplicationDetails
         return $volunteerHistories;
     }
 
-    public function read_by_id($id)
-    {
-        $query = "SELECT * FROM " . $this->table . " WHERE VolunteerHistoryID = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            $this->VolunteerHistoryID = $row['VolunteerHistoryID'];
-            $this->StartDate = $row['StartDate'];
-            $this->EndDate = $row['EndDate'];
-            
-            // Fetch the Event associated with this volunteer history
-            $event = new Event($this->conn);
-            $event->EventID = $row['EventID'];
-            $this->Event = $event->read_by_id($row['EventID']);  // Get the Event details
-            
-            return $this;
-        }
-
-        return null;
-    }
+   
 
     public function updateApplicationDetails($applicationID, $applicationDate, $eventID, $applicationStatusID, $applyForEventID) {
         $sql = "UPDATE" . $this->table." SET ApplicationDate = ?, EventID = ?, ApplicationStatusID = ?, ApplyForEventID = ? WHERE ApplicationDetailsID = ?";
@@ -120,11 +140,11 @@ class ApplicationDetails
         $result = $stmt->get_result();
 
         if ($row = $result->fetch_assoc()) {
-            $this->applicationDetailsID = $row['ApplicationDetailsID'];
-            $this->applicationDate = $row['ApplicationDate'];
-            $this->eventID = $row['EventID'];
-            $this->applicationStatusID = $row['ApplicationStatusID'];
-            $this->applyForEventID = $row['ApplyForEventID'];
+            $this->ApplicationDetailsID = $row['ApplicationDetailsID'];
+            $this->ApplicationDate = $row['ApplicationDate'];
+            $this->EventID = $row['EventID'];
+            $this->ApplicationStatusID = $row['ApplicationStatusID'];
+            $this->ApplyForEventID = $row['ApplyForEventID'];
             return $this;
         } else {
             // Handle not found error
@@ -132,6 +152,8 @@ class ApplicationDetails
         }
  
     }
+
+
     public function getApplicationsByEvent($eventID) {
         $sql = "SELECT * FROM ". $this->table ." WHERE EventID = ?";
         $stmt = $this->conn->prepare($sql);
@@ -144,11 +166,11 @@ class ApplicationDetails
             $applications = [];
             while ($row = $result->fetch_assoc()) {
                 $application = new ApplicationDetails($this->conn);
-                $application->applicationDetailsID = $row['ApplicationDetailsID'];
-                $application->applicationDate = $row['ApplicationDate'];
-                $application->eventID = $row['EventID'];
-                $application->applicationStatusID = $row['ApplicationStatusID'];
-                $application->applyForEventID = $row['ApplyForEventID'];
+                $application->ApplicationDetailsID = $row['ApplicationDetailsID'];
+                $application->ApplicationDate = $row['ApplicationDate'];
+                $application->EventID = $row['EventID'];
+                $application->ApplicationStatusID = $row['ApplicationStatusID'];
+                $application->ApplyForEventID = $row['ApplyForEventID'];
                 $applications[] = $application;
             }
     
@@ -171,11 +193,11 @@ class ApplicationDetails
             $applications = [];
             while ($row = $result->fetch_assoc()) {
                 $application = new ApplicationDetails($this->conn);
-                $application->applicationDetailsID = $row['ApplicationDetailsID'];
-                $application->applicationDate = $row['ApplicationDate'];
-                $application->eventID = $row['EventID'];
-                $application->applicationStatusID = $row['ApplicationStatusID'];
-                $application->applyForEventID = $row['ApplyForEventID'];
+                $application->ApplicationDetailsID = $row['ApplicationDetailsID'];
+                $application->ApplicationDate = $row['ApplicationDate'];
+                $application->EventID = $row['EventID'];
+                $application->ApplicationStatusID = $row['ApplicationStatusID'];
+                $application->ApplyForEventID = $row['ApplyForEventID'];
                 $applications[] = $application;
             }
     

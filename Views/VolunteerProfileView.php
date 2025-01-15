@@ -4,7 +4,7 @@ require_once '../Controllers/VolunteerController.php';
 
 
 $apiUrl = "https://www.universal-tutorial.com/api/countries/";
-$token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY"; // Replace with your actual token
+$token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ"; // Replace with your actual token
 
 
 // $ch = curl_init();
@@ -209,7 +209,6 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
 <div id="contactList">
     <h3>Saved Contacts</h3>
     <div id="contactsContainer" class="contact-cards">
-        <!-- Pre-populated dummy contacts -->
         <?php foreach ($volunteer->getEmergencyContacts() as $contact): ?>
             <div class="contact-card" id="contactCard<?= $contact->getEmergencyContactID($contact->getName(), $contact->getPhoneNumber()); ?>">
                 <h4>
@@ -248,10 +247,11 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
     <form id="volunteerForm" action="VolunteerProfileView.php" method="POST">
         <input type="hidden" name="action" value="addVolunteerHistory">
         <div class="form-row">
-            <div>
-                <label for="volunteerOrganization">Organization Name</label>
-                <input type="text" id="volunteerOrganization" name="volunteerOrganization" required>
-            </div>
+            
+            <!-- make the organization name to be from a drop down box that will display the organizations that the user has worked with -->
+
+                
+
             <div>
                 <label for="volunteerStartDate">Start Date</label>
                 <input type="date" id="volunteerStartDate" name="volunteerStartDate" required>
@@ -269,6 +269,20 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
                 <input type="text" id="EventDescription" name="EventDescription" required>
             </div>
             <!-- make them a drop down boxees like above -->
+            <div>
+            <label for="volunteerOrganization">Organization Name</label>
+            <select id="volunteerOrganization" name="volunteerOrganization" required>
+                <option value="" disabled selected>Select an organization</option>
+                <?php
+                $organizationNames = $controller->getallorganizationNames(); 
+
+                foreach ($organizationNames as $orgName) {
+                    echo "<option value=\"" . htmlspecialchars($orgName) . "\">" . htmlspecialchars($orgName) . "</option>";
+                }
+                ?>
+            </select>
+        </div>
+
              <div>
                 <label for="EventLocation">Event Location</label>
             <select class="country-dropdown" name="locations[<?php echo $locationIndex; ?>][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
@@ -559,8 +573,8 @@ function saveLocations(LocationID= null,UserID, volunteerID, areaDropdowns, city
     const url = "https://www.universal-tutorial.com/api/getaccesstoken";
     const headers = {
         "Accept": "application/json",
-        "api-token": "rJyS6hnaXPbetOq6WvJIW16k3ZmqiXXfo4sAyGyNvbAbPar2bNqTcxKmGyVTm2bFTso", // Replace with your actual API token
-        "user-email": "faridaelhussieny@gmail.com" // Replace with your actual email
+        "api-token": "ZZFUvVvUxZUDUgvIgH5VNHcNUv9I7GkcTMhhVwZBJtLLbQPXKLHpoKrDQz113PfJrkE", // Replace with your actual API token
+        "user-email": "20p6022@eng.asu.edu.eg" // Replace with your actual email
     };
     
 
@@ -589,7 +603,7 @@ async function fetchCountries() {
         const response = await fetch("https://www.universal-tutorial.com/api/countries/", {
             method: "GET",
             headers: {
-                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY", // Replace with your actual token
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ", // Replace with your actual token
                 "Accept": "application/json"
             }
         });
@@ -635,7 +649,7 @@ async function handleCountryChange(countryDropdown, cityDropdown, areaDropdown) 
         const response = await fetch(`https://www.universal-tutorial.com/api/states/${selectedCountry}`, {
             method: 'GET',
             headers: {
-                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY", // Replace with your actual token
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ", // Replace with your actual token
                 'Accept': 'application/json'
             },
         });
@@ -680,7 +694,7 @@ async function handleCityChange(cityDropdown, areaDropdown) {
         const response = await fetch(`https://www.universal-tutorial.com/api/cities/${selectedCity}`, {
             method: 'GET',
             headers: {
-                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJmYXJpZGFlbGh1c3NpZW55QGdtYWlsLmNvbSIsImFwaV90b2tlbiI6InJKeVM2aG5hWFBiZXRPcTZXdkpJVzE2azNabXFpWFhmbzRzQXlHeU52YkFiUGFyMmJOcVRjeEttR3lWVG0yYkZUc28ifSwiZXhwIjoxNzM1ODUyMDE0fQ._ndiabnbzMXim1R87xxTF60CJIOU1QgGd95hJDiVrTY", // Replace with your actual token
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ", // Replace with your actual token
                 'Accept': 'application/json'
             },
         });
