@@ -15,6 +15,12 @@ class VolunteerController {
         $this->VolunteerModel = new Volunteer();
     }
 
+public function getVolunteerNotifications($UserID){
+    echo "UserID is in getVolunteerNotifications $UserID";
+    $user = new User($UserID);
+    $notifications =  $user->getAllNotifications();
+    return $notifications;
+}
     public function get_all_Volunteers() {
         return Volunteer::getAllVolunteers();
     }

@@ -247,6 +247,78 @@ ul {
 .skill-type label {
     margin-right: 5px;
 }
+.sidebar {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    background-color: #333;
+    padding-top: 20px;
+    transition: 0.3s;
+}
 
+.sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #575757;
+}
+
+.sidebar .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    font-size: 36px;
+    color: white;
+    cursor: pointer;
+}
+
+.open-btn {
+    font-size: 30px;
+    cursor: pointer;
+    color: #333;
+}
+.notifications {
+    margin-top: 20px;
+}
+
+.notification-card {
+    background-color: rgb(213, 225, 250);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+    padding: 15px;
+    transition: transform 0.3s ease;
+}
+
+.notification-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.notification-card-header {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.notification-card-body {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.notification-card-footer {
+    text-align: right;
+    font-size: 12px;
+    color: #999;
+}
 
 

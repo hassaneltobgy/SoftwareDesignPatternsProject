@@ -3,6 +3,7 @@ require_once 'Database.php';
 require_once 'UserTypeModel.php';
 require_once 'volunteerModel.php';
 require_once 'LocationModel.php';
+require_once "../Models/NotificationModel.php";
 class User {
     private $conn;
     private $table_name = "User";
@@ -699,7 +700,46 @@ class User {
 
         return $stmt->execute();
     }
-
+    public function getAllNotifications(){
+        // Get all notifications for the user from user_notifications table
+        $query = "SELECT * FROM User_Notifications WHERE user_id = ?";
+        if ($this->conn === null) {
+            $this->conn = Database::getInstance()->getConnection();
+        }
+        $stmt = $this->conn->prepare($query);
+        echo "UserID: $this->UserID";
+        $stmt->bind_param("i", $this->UserID);
+        if ($stmt->execute() == false) {
+            echo "Error: " . $stmt->error;
+        }
+        $result = $stmt->get_result();
+        $notifications = [];
+    
+        // Loop through user_notifications to fetch corresponding notifications
+        while ($row = $result->fetch_assoc()) {
+            $notificationQuery = "SELECT * FROM Notification WHERE NotificationID = ? And notificationtypeid = 1";
+            $stmt = $this->conn->prepare($notificationQuery);
+            $stmt->bind_param("i", $row['notification_id']);
+            if ($stmt->execute() == false) {
+                echo "Error: " . $stmt->error;
+            }
+            
+            $notificationResult = $stmt->get_result();
+            
+            if ($notificationRow = $notificationResult->fetch_assoc()) {
+              
+                $notification = new Notification();
+                $notification->setNotificationID($notificationRow['NotificationID']);
+                $notification->setNotificationType($notificationRow['notificationtypeid']);
+                $notification->setNotificationMessage($notificationRow['NotificationMessage']);
+                $notification->setNotificationTime($notificationRow['NotificationTime']);
+                $notifications[] = $notification;
+            }
+        }
+    
+        return $notifications;
+    }
+    
 
     public function update_Notification_Types($NotificationTypeNames) {
         //    overwrite the notification types for the user id 

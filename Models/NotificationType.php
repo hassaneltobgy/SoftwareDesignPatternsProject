@@ -85,5 +85,20 @@ class NotificationType
 
         return $stmt->execute();
     }
+
+    // get notification name by id 
+    public static function getNotificationTypeName($id){
+        $query = "SELECT TypeName FROM NotificationType WHERE NotificationTypeID = ? LIMIT 1";
+        $conn = Database::getInstance()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            return $row['TypeName'];
+        }
+        return null;
+    }
 }
 ?>

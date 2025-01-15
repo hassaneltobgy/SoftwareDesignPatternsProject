@@ -85,13 +85,13 @@
         <script>
     console.log("Message:", "<?php echo addslashes($controller->Message); ?>");
     const message = "<?php echo addslashes($controller->Message); ?>";
-    if (message.includes("volunteer")) {
-        window.location.href = "../Views/VolunteerMainScreen.php?message=" + message;
-    } else if (message.includes("admin")) {
-        window.location.href = "../Views/AdminControlPanel.php?message=" + message;
-    } else if (message.includes("organization")) {
-        window.location.href = "../Views/OrganizationMainScreen.php?message=" + message;
-    } 
+    // if (message.includes("volunteer")) {
+    //     window.location.href = "../Views/VolunteerMainScreen.php?message=" + message;
+    // } else if (message.includes("admin")) {
+    //     window.location.href = "../Views/AdminControlPanel.php?message=" + message;
+    // } else if (message.includes("organization")) {
+    //     window.location.href = "../Views/OrganizationMainScreen.php?message=" + message;
+    // } 
 
 
 </script>

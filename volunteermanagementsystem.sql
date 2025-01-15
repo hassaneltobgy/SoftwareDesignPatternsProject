@@ -38,7 +38,7 @@ CREATE TABLE `admin` (
   UNIQUE KEY `Email` (`Email`),
   KEY `UserID` (`UserID`),
   CONSTRAINT `admin_ibfk_2` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +47,7 @@ CREATE TABLE `admin` (
 
 LOCK TABLES `admin` WRITE;
 /*!40000 ALTER TABLE `admin` DISABLE KEYS */;
-INSERT INTO `admin` VALUES (4,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',118),(5,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$FQgGLJC.r0dUKmPXZxwCIuEO/A5FYUc2e/s8Z9BQjjbYvROlAlZrS','2024-12-29','2024-12-29',119);
+INSERT INTO `admin` VALUES (4,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',118),(5,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$FQgGLJC.r0dUKmPXZxwCIuEO/A5FYUc2e/s8Z9BQjjbYvROlAlZrS','2024-12-29','2024-12-29',119),(27,'Admin','Example','20p6022@eng.asu.edu.eg','+201283103800','2002-02-02','20p6022@eng.asu.edu.eg','$2y$10$zrkldlfE8yqu2xCMWkD/ZObtqq.500OcQglXqkCsPDUSJjQQ2lkW.','2025-01-15','2025-01-15',159);
 /*!40000 ALTER TABLE `admin` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -911,7 +911,7 @@ CREATE TABLE `notification` (
   PRIMARY KEY (`NotificationID`),
   KEY `fk_notification_type` (`notificationtypeid`),
   CONSTRAINT `fk_notification_type` FOREIGN KEY (`notificationtypeid`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -920,7 +920,7 @@ CREATE TABLE `notification` (
 
 LOCK TABLES `notification` WRITE;
 /*!40000 ALTER TABLE `notification` DISABLE KEYS */;
-INSERT INTO `notification` VALUES (2,'Welcome to our platform, you have successfully registered your account.','2025-01-15 12:12:01',1),(3,'Welcome to our platform, you have successfully registered your account.','2025-01-15 12:14:04',1);
+INSERT INTO `notification` VALUES (2,'Welcome to our platform, you have successfully registered your account.','2025-01-15 12:12:01',1),(3,'Welcome to our platform, you have successfully registered your account.','2025-01-15 12:14:04',1),(4,'Welcome to our platform, you have successfully registered your account.','2025-01-15 19:30:42',1),(5,'Welcome to our platform, you have successfully registered your account.','2025-01-15 20:32:50',3),(7,'Welcome to our platform, you have successfully registered your account.','2025-01-15 22:57:19',2),(8,'Welcome to our platform, you have successfully registered your account.','2025-01-15 22:57:19',3);
 /*!40000 ALTER TABLE `notification` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1676,7 +1676,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `Email` (`Email`),
   KEY `UserTypeID` (`UserTypeID`),
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`UserTypeID`) REFERENCES `usertype` (`UserTypeID`)
-) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1685,7 +1685,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (75,'Bob','Brown','bobb@example.com','5678901234','2002-08-07','bobbrown','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-25','2024-12-05',2),(86,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',1),(93,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhussieny@gmail.com','$2y$10$8yEwVjfhu2KCFmNTqqqbRunFZFzhUeh5CyyXJWyqpoOlhmHDAJnZW','2002-02-02','2002-02-02',1),(95,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(96,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$0lkVzJDkXdFc4TF70BgY8uEN8zJjjNMXeCvk0ZZiAtQLOjjSa.eku','2024-12-28','2024-12-28',1),(97,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$zLUaGcH7lWN1I1wnfnPcgu/dRiWPfe6Xzj/ZwRdrqqeor1IjLYuJS','2024-12-28','2024-12-28',1),(98,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$f0HMDwLOADKo3WorbFGKiut7vRWFLAWXe0IPBLEW/yNpBppxzNd26','2024-12-28','2024-12-28',1),(118,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',2),(119,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$CIhU1A6h9OAYwDZO5KMNEuO/ePk9Zcz0pRgIG0mo8ma4GAyYKCFgu','2024-12-29','2024-12-29',2),(121,'Masr el Kheir','Masr el Kheir','Masr.ElKheir@example.com','12345678','2002-02-02','Masr.ElKheir@example.com','$2y$10$BfH9Tpy73UsnA8Oud7oUg.s3kEftvqeLwCMJKJih/od7T4O9sskKi','2024-12-29','2024-12-29',3),(122,'Resala','Org','Resala@example.com','12345678','2002-02-02','Resala@example.com','$2y$10$Wysv/wg7Yrtt4ssbOoYUQ.EmhrZt00orHLK8mujoBYuF5MZIQ7Qay','2025-01-15','2025-01-15',3),(123,'Orman','Org','Orman@example.com','12345678','2002-02-02','Orman@example.com','$2y$10$RMbijG54rmHJXQtK53267ehQLEdJs44PQs7pRbcw6dlPnrHIV0K3e','2025-01-15','2025-01-15',3),(128,'57375','Hospital','57357@example.com','12345678','2002-02-02','57357@example.com','$2y$10$E.gv5e3mfrKB.zNDJxMMR.dIK8JkiYUDz0ZhI6Xidm4UNEM5NjO26','2025-01-15','2025-01-15',3),(129,'4040','Hospital','4040@example.com','12345678','2002-02-02','4040@example.com','$2y$10$b9.AfllIOm23bFOM30h1duefmyF6geQ822dIpzGuOUDvgNejoZsFC','2025-01-15','2025-01-15',3),(132,'idk','Hospital','idk@example.com','12345678','2002-02-02','idk@example.com','$2y$10$Llb7oEi85J199YaZSUnX8OIjRUnbTEMVM5VXOXV5Fvc25K8HQekb.','2025-01-15','2025-01-15',3),(134,'baheya','Hospital','baheya@example.com','12345678','2002-02-02','baheya@example.com','$2y$10$6c9pD5PPrkN6kl4kY/iMDOBS1H4MGOyTUQXZ3ocmHz6G3w3zTRSWu','2025-01-15','2025-01-15',3),(135,'hahaha','Hospital','hahaha@example.com','12345678','2002-01-01','hahaha@example.com','$2y$10$cJg7aN3QO3wqhtwpvmBlgOXsj1ACyQ98efnUmm0mPDCREKpZQbZ56','2025-01-15','2025-01-15',3);
+INSERT INTO `user` VALUES (75,'Bob','Brown','bobb@example.com','5678901234','2002-08-07','bobbrown','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2024-12-25','2024-12-05',2),(86,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',1),(93,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhussieny@gmail.com','$2y$10$8yEwVjfhu2KCFmNTqqqbRunFZFzhUeh5CyyXJWyqpoOlhmHDAJnZW','2002-02-02','2002-02-02',1),(95,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',1),(96,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$0lkVzJDkXdFc4TF70BgY8uEN8zJjjNMXeCvk0ZZiAtQLOjjSa.eku','2024-12-28','2024-12-28',1),(97,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$zLUaGcH7lWN1I1wnfnPcgu/dRiWPfe6Xzj/ZwRdrqqeor1IjLYuJS','2024-12-28','2024-12-28',1),(98,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$f0HMDwLOADKo3WorbFGKiut7vRWFLAWXe0IPBLEW/yNpBppxzNd26','2024-12-28','2024-12-28',1),(118,'Jane','Smith','janesmith@example.com','01283103800','2002-02-02','janesmith@example.com','$2y$10$W5qgNO9kcEGtCFvAEAVlRuZtk1MA.wQO7vsEGQL0W37YX2FDmXJD.','2024-12-29','2024-12-29',2),(119,'Buzz','Fuzz','Buzz@examaple.com','01283103800','2002-08-02','Buzz@examaple.com','$2y$10$CIhU1A6h9OAYwDZO5KMNEuO/ePk9Zcz0pRgIG0mo8ma4GAyYKCFgu','2024-12-29','2024-12-29',2),(121,'Masr el Kheir','Masr el Kheir','Masr.ElKheir@example.com','12345678','2002-02-02','Masr.ElKheir@example.com','$2y$10$BfH9Tpy73UsnA8Oud7oUg.s3kEftvqeLwCMJKJih/od7T4O9sskKi','2024-12-29','2024-12-29',3),(122,'Resala','Org','Resala@example.com','12345678','2002-02-02','Resala@example.com','$2y$10$Wysv/wg7Yrtt4ssbOoYUQ.EmhrZt00orHLK8mujoBYuF5MZIQ7Qay','2025-01-15','2025-01-15',3),(123,'Orman','Org','Orman@example.com','12345678','2002-02-02','Orman@example.com','$2y$10$RMbijG54rmHJXQtK53267ehQLEdJs44PQs7pRbcw6dlPnrHIV0K3e','2025-01-15','2025-01-15',3),(128,'57375','Hospital','57357@example.com','12345678','2002-02-02','57357@example.com','$2y$10$E.gv5e3mfrKB.zNDJxMMR.dIK8JkiYUDz0ZhI6Xidm4UNEM5NjO26','2025-01-15','2025-01-15',3),(129,'4040','Hospital','4040@example.com','12345678','2002-02-02','4040@example.com','$2y$10$b9.AfllIOm23bFOM30h1duefmyF6geQ822dIpzGuOUDvgNejoZsFC','2025-01-15','2025-01-15',3),(132,'idk','Hospital','idk@example.com','12345678','2002-02-02','idk@example.com','$2y$10$Llb7oEi85J199YaZSUnX8OIjRUnbTEMVM5VXOXV5Fvc25K8HQekb.','2025-01-15','2025-01-15',3),(134,'baheya','Hospital','baheya@example.com','12345678','2002-02-02','baheya@example.com','$2y$10$6c9pD5PPrkN6kl4kY/iMDOBS1H4MGOyTUQXZ3ocmHz6G3w3zTRSWu','2025-01-15','2025-01-15',3),(135,'hahaha','Hospital','hahaha@example.com','12345678','2002-01-01','hahaha@example.com','$2y$10$cJg7aN3QO3wqhtwpvmBlgOXsj1ACyQ98efnUmm0mPDCREKpZQbZ56','2025-01-15','2025-01-15',3),(159,'Admin','Example','20p6022@eng.asu.edu.eg','+201283103800','2002-02-02','20p6022@eng.asu.edu.eg','$2y$10$WTiK2G0udLCizhPE2rn3..oGTn1f8GkcMYnJNwfFp2gUL..3Jh.ru','2025-01-15','2025-01-15',2);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1739,7 +1739,7 @@ CREATE TABLE `user_notifications` (
 
 LOCK TABLES `user_notifications` WRITE;
 /*!40000 ALTER TABLE `user_notifications` DISABLE KEYS */;
-INSERT INTO `user_notifications` VALUES (134,2),(135,3);
+INSERT INTO `user_notifications` VALUES (134,2),(135,3),(93,4),(93,5),(159,5);
 /*!40000 ALTER TABLE `user_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1754,8 +1754,9 @@ CREATE TABLE `user_notificationtype` (
   `UserID` int NOT NULL,
   `NotificationTypeID` int NOT NULL,
   PRIMARY KEY (`UserID`,`NotificationTypeID`),
-  KEY `user_notificationtype_ibfk_2` (`NotificationTypeID`),
-  CONSTRAINT `user_notificationtype_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
+  KEY `fk_notificationtypeid` (`NotificationTypeID`),
+  CONSTRAINT `fk_notificationtypeid` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE,
+  CONSTRAINT `fk_userid` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE,
   CONSTRAINT `user_notificationtype_ibfk_2` FOREIGN KEY (`NotificationTypeID`) REFERENCES `notificationtype` (`NotificationTypeID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1766,7 +1767,7 @@ CREATE TABLE `user_notificationtype` (
 
 LOCK TABLES `user_notificationtype` WRITE;
 /*!40000 ALTER TABLE `user_notificationtype` DISABLE KEYS */;
-INSERT INTO `user_notificationtype` VALUES (93,1),(134,1),(135,1),(93,2),(93,3);
+INSERT INTO `user_notificationtype` VALUES (93,1),(134,1),(135,1),(93,2),(93,3),(159,3);
 /*!40000 ALTER TABLE `user_notificationtype` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2136,4 +2137,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-01-15 13:19:01
+-- Dump completed on 2025-01-15 23:17:33

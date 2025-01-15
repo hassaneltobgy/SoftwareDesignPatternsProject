@@ -102,6 +102,7 @@ static public function create_admin(
             if ($stmt->execute()) {
                 $admin->AdminID = $admin->conn->insert_id;
                 echo "Admin created successfully.";
+                return $admin;
             } 
             else {
                 echo "Admin creation failed.";

@@ -1,6 +1,7 @@
 <?php
 require_once 'Database.php';
 require_once 'NotificationModel.php';
+require_once '../Models/NotificationSender.php';
 
 interface ISubject {
     public function add(IObserver $observer);
@@ -26,10 +27,13 @@ class NotifyBySMSObserver implements IObserver {
     }
 
     public function sendNotification($Msg, $Users) {
-        
+        $smsService = new SMSNotificationService();
+        $smsNotificationAdapter = new SmsNotificationAdapter($smsService);
 
         for ($i = 0; $i < count($Users); $i++) {
             // Send SMS notification using Twilio or any other SMS gateway
+            echo "Now Sending SMS to {$Users[$i]->PhoneNumber}";
+            $smsNotificationAdapter->send($Msg, $Users[$i]->PhoneNumber);
             Notification::storeNotification("sms", $Msg, $Users[$i]->UserID);
         }
     }
@@ -49,10 +53,12 @@ class NotifyByEmailObserver implements IObserver {
     }
 
     public function sendNotification($Msg, $Users) {
-
+        $emailService = new EmailService();
+        $emailNotificationAdapter = new EmailNotificationAdapter($emailService);
         // Send Email notification using PHPMailer or any other email library
 
         for ($i = 0; $i < count($Users); $i++) {
+            $emailNotificationAdapter->send($Users[$i]->Email, $Msg);
             Notification::storeNotification("email", $Msg, $Users[$i]->UserID);
         }
     }
@@ -74,7 +80,6 @@ class NotifyByInAppObserver implements IObserver {
     }
 
     public function sendNotification($Msg, $Users) {
-        // Send In-App notification using Firebase Cloud Messaging or any other push notification service
         for ($i = 0; $i < count($Users); $i++) {
             Notification::storeNotification("push notification", $Msg, $Users[$i]->UserID);
         }

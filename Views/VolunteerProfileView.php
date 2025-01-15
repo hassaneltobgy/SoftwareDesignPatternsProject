@@ -75,6 +75,49 @@ $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all s
     <link rel="stylesheet" href="./Style/Style_volunteer_profile.css">
 </head>
 <body>
+
+<div id="mySidebar" class="sidebar">
+    <span href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</span>
+    <!-- display a list of all notifications by calling controller->getVolunteerNotifications -->
+    <h2>Notifications</h2>
+    <div class="notifications">
+        <?php foreach ($controller->getVolunteerNotifications($volunteer->getUserID()) as $notification): ?>
+            <div class="notification-card">
+                <div class="notification-card-header">
+                    <strong>Notification</strong>
+                </div>
+                <div class="notification-card-body">
+                    <p><?= $notification->get_Message(); ?></p>
+                </div>
+                <div class="notification-card-footer">
+                    <small><?= $notification->getNotificationTime(); ?></small>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+    <span class="open-btn" onclick="openNav()">&#9776;</span> <!-- Hamburger icon to open sidebar -->
+   
+    <script>
+ function openNav() {
+    // Move sidebar into view
+    document.getElementById("mySidebar").style.left = "0";
+    // Adjust the container to account for the sidebar
+    const container = document.querySelector('.container');
+    container.style.marginLeft = "250px";
+    container.style.width = "calc(100% - 250px)"; // Dynamically adjust width
+    container.style.transition = "margin-left 0.3s ease, width 0.3s ease"; // Smooth transition
+}
+function closeNav() {
+    // Hide the sidebar
+    document.getElementById("mySidebar").style.left = "-250px";
+    // Reset container position and width
+    const container = document.querySelector('.container');
+    container.style.marginLeft = "auto";
+    container.style.width = "80%"; // Reset to centered layout width
+    container.style.transition = "margin-left 0.3s ease, width 0.3s ease"; // Smooth transition
+}
+</script>
     <div class="container">
         <!-- Profile Section -->
         <div class="section">

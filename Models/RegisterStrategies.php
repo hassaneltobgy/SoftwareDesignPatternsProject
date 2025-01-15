@@ -67,7 +67,7 @@ class FacebookRegister implements RegisterMethodStrategy
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
                 return [ 
-                    'message' => "Successfully registered with Facebook as an organization",
+                    'message' => "Successfully registered with Email as an organization",
                     'user' => $organization
                 ];
 
@@ -84,7 +84,7 @@ class FacebookRegister implements RegisterMethodStrategy
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
                 return [
-                    'message' => "Successfully registered with Facebook as an admin",
+                    'message' => "Successfully registered with Email as an admin",
                     'user' => $admin
                 ];
         }
@@ -139,7 +139,7 @@ class GoogleRegister implements RegisterMethodStrategy
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
                 return [
-                    'message' => "Successfully registered with Facebook as an organization",
+                    'message' => "Successfully registered with Google as an organization",
                     'user' => $organization
                 ];
 
@@ -156,7 +156,7 @@ class GoogleRegister implements RegisterMethodStrategy
                 $LAST_LOGIN, 
                 $ACCOUNT_CREATION_DATE );
                 return [
-                    'message' => "Successfully registered with Facebook as an admin",
+                    'message' => "Successfully registered with Google as an admin",
                     'user' => $admin
                 ];
         }
@@ -288,16 +288,22 @@ class RegisterMethodContext
         // insert in table user_notificationtype the notification type id and the user id
 
         // send a notification to the user after registration is successful
+        if ($user==null)
+        echo "User is null";
+        else{
+            echo "User is not null, user id is: ".$user->UserID;
+        }
+
         if ($msg !== null) {
             $conn = Database::getInstance()->getConnection();
-            $NotificationId = NotificationType::getNotificationTypeIdByName("email");
+            $NotificationId = NotificationType::getNotificationTypeIdByName("sms");
         
             $user->add_notification_type($NotificationId);
 
            
             
             $UserRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
-            $emailobsrever = new NotifyByEmailObserver($UserRegisteredNotificationService);
+            $smsObserver = new NotifyBySMSObserver($UserRegisteredNotificationService);
             $UserRegisteredNotificationService->notify();
         }
         return $msg;

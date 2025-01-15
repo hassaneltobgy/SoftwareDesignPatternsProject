@@ -3,9 +3,10 @@ class Notification {
 
 private $conn;
 private $table_name = "Notification";
+private $NotificationID;
 private $NotificationMessage;
 private $NotificationTime;
-private $NotificationTypeID;
+private $NotificationType;
 
 
 public function __construct($id= null){
@@ -40,9 +41,30 @@ public static function storeNotification($type, $message, $userId) {
     $stmt->close();
     echo "Notification stored in DB: $message\n";
 }
-
-
-
+public function get_Message(){
+    return $this->NotificationMessage;
+}
+public function getNotificationTime(){
+    return $this->NotificationTime;
+}
+// add setters and getters
+public function setNotificationMessage($NotificationMessage){
+    $this->NotificationMessage = $NotificationMessage;
+}
+public function setNotificationID($NotificationID){
+    $this->NotificationID = $NotificationID;
 
 }
+public function setNotificationTime($NotificationTime){
+    $this->NotificationTime = $NotificationTime;
+}
+public function setNotificationType($NotificationTypeID){
+    // create an instance of NotificationType
+    $NotificationType = new NotificationType($NotificationTypeID);
+    $NotificationType->NotificationTypeID = $NotificationTypeID;
+    $NotificationType->TypeName = $NotificationType::getNotificationTypeName($NotificationTypeID);
+    $this->NotificationType = $NotificationType;
+}
+}
+
 ?>
