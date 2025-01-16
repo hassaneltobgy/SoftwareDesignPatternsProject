@@ -58,10 +58,10 @@ static public function create_admin(
     $FirstName, 
     $LastName, 
     $Email, 
-    $PhoneNumber, 
-    $DateOfBirth, 
+    $PhoneNumber= null, 
+    $DateOfBirth= null, 
     $USER_NAME, 
-    $password, 
+    $password= null, 
     $LAST_LOGIN, 
     $ACCOUNT_CREATION_DATE , 
     $privileges = []
@@ -74,7 +74,7 @@ static public function create_admin(
         $PhoneNumber, 
         $DateOfBirth, 
         $USER_NAME, 
-        password_hash($password, PASSWORD_BCRYPT), 
+        $password?password_hash($password, PASSWORD_BCRYPT): null,
         $LAST_LOGIN, 
         $ACCOUNT_CREATION_DATE,
         "admin",
@@ -94,7 +94,7 @@ static public function create_admin(
         $admin->USER_NAME = $USER_NAME;
         $admin->LAST_LOGIN = $LAST_LOGIN;
         $admin->ACCOUNT_CREATION_DATE = $ACCOUNT_CREATION_DATE;
-        $admin->PASSWORD_HASH = password_hash($password, PASSWORD_BCRYPT);
+        $admin->PASSWORD_HASH = $password?password_hash($password, PASSWORD_BCRYPT): null;
 
         // Query to insert admin details
         $query = "INSERT INTO " . $admin->table_name . " 

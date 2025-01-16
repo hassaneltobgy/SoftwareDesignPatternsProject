@@ -68,12 +68,12 @@ class Volunteer extends User {
 
     static public function create_Volunteer(
         $FirstName, 
-        $LastName, 
+        $LastName= null, 
         $Email, 
-        $PhoneNumber, 
-        $DateOfBirth, 
+        $PhoneNumber= null, 
+        $DateOfBirth = null, 
         $USER_NAME, 
-        $password, 
+        $password= null, 
         $LAST_LOGIN, 
         $ACCOUNT_CREATION_DATE , 
         $privileges = [],
@@ -93,9 +93,9 @@ class Volunteer extends User {
         $LastName, 
         $Email, 
         $PhoneNumber, 
-        $DateOfBirth, 
+        $DateOfBirth = null, 
         $USER_NAME, 
-        password_hash($password, PASSWORD_BCRYPT), 
+        $password ? password_hash($password, PASSWORD_BCRYPT): null,
         $LAST_LOGIN, 
         $ACCOUNT_CREATION_DATE,
         "Volunteer",
@@ -109,9 +109,9 @@ class Volunteer extends User {
             $query = "INSERT INTO " . $volunteer->table_name . " 
             (
                 FirstName, LastName, Email, PhoneNumber, DateOfBirth, USER_NAME, PASSWORD_HASH, LAST_LOGIN, ACCOUNT_CREATION_DATE,
-                hours_contributed, NumberOfEventsAttended, VolunteerBadgeID, UserID
+                hours_contributed, NumberOfEventsAttended, VolunteerBadgeID, UserID, ImageUrl
             ) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)";
             $conn = Database::getInstance()->getConnection();
             if (!$conn) {
                 echo "Database connection error.";
@@ -135,18 +135,20 @@ class Volunteer extends User {
         $volunteer->PhoneNumber = $PhoneNumber;
         $volunteer->DateOfBirth = $DateOfBirth;
         $volunteer->USER_NAME = $USER_NAME;
-        $volunteer->PASSWORD_HASH = password_hash($password, PASSWORD_BCRYPT);
+        $volunteer->PASSWORD_HASH = $password?password_hash($password, PASSWORD_BCRYPT):null;
         $volunteer->LAST_LOGIN = $LAST_LOGIN;
         $volunteer->ACCOUNT_CREATION_DATE = $ACCOUNT_CREATION_DATE;
         $volunteer->hours_contributed = $hours_contributed;
         $volunteer->NumberOfEventsAttended = $NumberOfEventsAttended;
         $volunteer->badge= $volunteer->get_badge_by_name($badge_name);
+        $standardImage = "D:\\ASU\\Mobile Programming\\hedieatyfinalproject\\assets\\free\\3d-illustration-with-online-avatar_23-2151303043.jpeg";
+        $volunteer->ProxyImage = $volunteer->getProxyImageObject($standardImage);
         
 
-        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+        $password_hash = $password?password_hash($password, PASSWORD_BCRYPT):null;
 
         $stmt->bind_param(
-            "sssssssssiiii", 
+            "sssssssssiiiis", 
             $FirstName, 
             $LastName, 
             $Email, 
@@ -159,7 +161,9 @@ class Volunteer extends User {
             $hours_contributed, 
             $NumberOfEventsAttended, 
             $badge_id,
-            $UserId
+            $UserId,
+            $standardImage
+            
         );
           
           
@@ -298,6 +302,35 @@ class Volunteer extends User {
     }
 
 
+    public static function get_volunteer_by_email($email) {
+        $table_name = "Volunteer";
+        $query = "SELECT * FROM $table_name WHERE Email = ?";
+        $stmt = Database::getInstance()->getConnection()->prepare($query);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $volunteer = new Volunteer();
+        $volunteer->VolunteerID = $row['VolunteerID'];
+        $volunteer->UserID = $row['UserID'];
+        $volunteer->FirstName = $row['FirstName'];
+        $volunteer->LastName = $row['LastName'];
+        $volunteer->Email = $row['Email'];
+        $volunteer->PhoneNumber = $row['PhoneNumber'];
+        $volunteer->DateOfBirth = $row['DateOfBirth'];
+        $volunteer->USER_NAME = $row['USER_NAME'];
+        $volunteer->PASSWORD_HASH = $row['PASSWORD_HASH'];
+        $volunteer->LAST_LOGIN = $row['LAST_LOGIN'];
+        $volunteer->ACCOUNT_CREATION_DATE = $row['ACCOUNT_CREATION_DATE'];
+        $volunteer->hours_contributed = $row['hours_contributed'];
+        $volunteer->NumberOfEventsAttended = $row['NumberOfEventsAttended'];
+        $volunteer->skills = $volunteer->get_skills();
+        $volunteer->volunteer_history = $volunteer->get_history();
+        $volunteer->badge = $volunteer->get_badge();
+        $volunteer-> ProxyImage = $volunteer->getProxyImageObject($row['ImageUrl']);
+        return $volunteer;
+
+    }
 
     public function getVolunteerID() {
         return $this->VolunteerID;
@@ -413,7 +446,8 @@ class Volunteer extends User {
         }
         $this->USER_NAME = $USER_NAME?? $volunteerData->USER_NAME;
         $this->PASSWORD_HASH = $password !== null ? password_hash($password, PASSWORD_BCRYPT) : ($VolunteerID ? password_hash($password, PASSWORD_BCRYPT) :  $volunteerData->PASSWORD_HASH );
-        $this->badge = $badge_name != null ? $this->get_badge_by_name($badge_name) : ($VolunteerID ? $this->get_badge() : $volunteerData->badge);
+
+        $this->badge = $badge_name != null ? $this->get_badge_by_name($badge_name) : ($volunteerData->badge);
     
         $query = "UPDATE " . $this->table_name . " 
                   SET FirstName = ?, 
@@ -429,11 +463,9 @@ class Volunteer extends User {
                   WHERE VolunteerID = ?";
     
         $stmt = $this->conn->prepare($query);
-        // query volunteer badge to get badge id
-        if ($badge_name == null) {
-            $badge_name = "Starter Badge";
-        }
-        $badge_id = VolunteerBadge::getBadgeIdByName($badge_name);
+        $badge_id = $this->badge->getBadgeIdByName($this->badge->get_title());
+        echo "badge name before getting badge id is . $badge_name";
+        // $badge_id = $this->badge->badge_id;
         echo "now updating volunteer with values of hours contributed $hours_contributed and number of events attended $NumberOfEventsAttended and badge id $badge_id";
 
         $stmt->bind_param(
@@ -771,6 +803,7 @@ class Volunteer extends User {
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         $badge_id = $row['VolunteerBadgeID'] ?? null;
+        echo "badge id is $badge_id";
         if (!$badge_id) {
             echo "No badge assigned to this volunteer.";
             return null; // No badge assigned
@@ -789,6 +822,7 @@ class Volunteer extends User {
         if (!$row) {
             return null; // Badge not found
         }
+        echo "now getting badge with title $badge_title and id $badge_id";
         return BadgeFactory::createBadge($badge_title, $badge_id);
     }
     

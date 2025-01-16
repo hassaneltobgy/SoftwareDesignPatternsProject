@@ -21,6 +21,7 @@ class BadgeFactory {
                 )
             );
         } elseif ($badge_name === 'expert badge') {
+            echo "now returning expert badge";
             return new ExpertBadgeDecorator(
                 new AdvancedBadgeDecorator($baseBadge)
             );

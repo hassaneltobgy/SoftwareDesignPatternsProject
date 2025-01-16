@@ -1,4 +1,6 @@
 <?php
+// session_start();
+
 require_once '../Controllers/VolunteerController.php';
 
 
@@ -64,7 +66,18 @@ $controller = new VolunteerController();
 
 // assuming that the controller has a method to get the volunteer id from the session
 $dummy_id = 49;
-$volunteer = $controller->getVolunteerbyId($dummy_id);
+
+
+if (isset($_GET['email'])) {
+    $email = $_GET['email'];
+} else {
+    echo "email not set";
+}
+
+// $volunteer = $controller->getVolunteerbyId($dummy_id);
+
+$volunteer = $controller->getVolunteerbyEmail($email);
+
 //will get the proxy image using the url specified in db
 $proxyImage = $volunteer->getProxyImage();
 $tempImagePath = $proxyImage->display();
@@ -577,7 +590,9 @@ function closeNav() {
     </div>
 </body>
 </html>
-<script type="module">
+
+<script>
+
 
 function saveLocations(LocationID= null,UserID, volunteerID, areaDropdowns, cityDropdowns, countryDropdowns) {
     console.log("now saving locations");
@@ -625,87 +640,7 @@ function saveLocations(LocationID= null,UserID, volunteerID, areaDropdowns, city
             console.error('Error saving locations:', error);
         });
 }
-
-import { ApiServiceProxy } from '../Models/ApiServiceProxy.js';
-const apiProxy = new ApiServiceProxy(); // Use Proxy instead of directly calling RealApiService
-async function fetchCountries() {
-    try {
-        const countries = await apiProxy.fetchCountries(); // Use Proxy method
-        const countryList = countries.map(country => country.country_name).sort();
-
-        // Populate all country dropdowns
-        document.querySelectorAll('.country-dropdown').forEach(dropdown => {
-            dropdown.innerHTML = '<option value="">Select Country</option>';
-            countryList.forEach(country => {
-                const option = document.createElement('option');
-                option.value = country;
-                option.textContent = country;
-                dropdown.appendChild(option);
-            });
-        });
-    } catch (error) {
-        console.error('Error fetching countries:', error);
-        alert('Could not fetch countries. Please try again.');
-    }
-}
-
-// Call this function to load countries when the page is ready
-document.addEventListener('DOMContentLoaded', fetchCountries);
-
-
-
-// Handle country change to fetch cities
-// Handle country change to fetch states (cities in your naming convention)
-async function handleCountryChange(countryDropdown, cityDropdown, areaDropdown) {
-    const selectedCountry = countryDropdown.value;
-    if (!selectedCountry) return;
-
-    try {
-        console.log('Fetching states for', selectedCountry);
-
-        const states = await apiProxy.fetchStates(selectedCountry); // Use Proxy method
-        cityDropdown.innerHTML = '<option value="">Select City</option>';
-        states.forEach(state => {
-            const option = document.createElement('option');
-            option.value = state.state_name;
-            option.textContent = state.state_name;
-            cityDropdown.appendChild(option);
-        });
-
-        areaDropdown.innerHTML = '<option value="">Select Area</option>';
-    } catch (error) {
-        console.error('Error fetching states:', error);
-        alert('Could not fetch cities. Please try again.');
-    }
-}
-
-
-
-
-// Handle city change to fetch areas
-async function handleCityChange(cityDropdown, areaDropdown) {
-    const selectedCity = cityDropdown.value;
-    if (!selectedCity) return;
-
-    try {
-        console.log('Fetching areas for city:', selectedCity);
-
-        const areas = await apiProxy.fetchCities(selectedCity); // Use Proxy method
-        areaDropdown.innerHTML = '<option value="">Select Area</option>';
-        areas.forEach(area => {
-            const option = document.createElement('option');
-            option.value = area.city_name;
-            option.textContent = area.city_name;
-            areaDropdown.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error fetching areas:', error);
-        alert('Could not fetch areas. Please try again.');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', fetchCountries);
-    function addEmergencyContact($Name, $Phone, $VolunteerID) {
+function addEmergencyContact($Name, $Phone, $VolunteerID) {
         console.log('Adding emergency contact...');
         console.log('Name:', $Name);
         console.log('Phone:', $Phone);
@@ -1307,8 +1242,108 @@ const countryDropdowns = document.querySelectorAll('.country-dropdown');
     });
 
 
+</script>
 
 
+<script type="module">
+
+
+import { ApiServiceProxy } from '../Models/ApiServiceProxy.js';
+const apiProxy = new ApiServiceProxy(); // Use Proxy instead of directly calling RealApiService
+async function fetchCountries() {
+    try {
+        const countries = await apiProxy.fetchCountries(); // Use Proxy method
+        const countryList = countries.map(country => country.country_name).sort();
+
+        // Populate all country dropdowns
+        document.querySelectorAll('.country-dropdown').forEach(dropdown => {
+            dropdown.innerHTML = '<option value="">Select Country</option>';
+            countryList.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                dropdown.appendChild(option);
+            });
+        });
+    } catch (error) {
+        console.error('Error fetching countries:', error);
+        alert('Could not fetch countries. Please try again.');
+    }
+}
+
+
+
+
+// Handle country change to fetch cities
+// Handle country change to fetch states (cities in your naming convention)
+async function handleCountryChange(countryDropdown, cityDropdown, areaDropdown) {
+    const selectedCountry = countryDropdown.value;
+    if (!selectedCountry) return;
+
+    try {
+        console.log('Fetching states for', selectedCountry);
+
+        const states = await apiProxy.fetchStates(selectedCountry); // Use Proxy method
+        cityDropdown.innerHTML = '<option value="">Select City</option>';
+        states.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state.state_name;
+            option.textContent = state.state_name;
+            cityDropdown.appendChild(option);
+        });
+
+        areaDropdown.innerHTML = '<option value="">Select Area</option>';
+    } catch (error) {
+        console.error('Error fetching states:', error);
+        alert('Could not fetch cities. Please try again.');
+    }
+}
+
+
+
+
+// Handle city change to fetch areas
+async function handleCityChange(cityDropdown, areaDropdown) {
+    const selectedCity = cityDropdown.value;
+    if (!selectedCity) return;
+
+    try {
+        console.log('Fetching areas for city:', selectedCity);
+
+        const areas = await apiProxy.fetchCities(selectedCity); // Use Proxy method
+        areaDropdown.innerHTML = '<option value="">Select Area</option>';
+        areas.forEach(area => {
+            const option = document.createElement('option');
+            option.value = area.city_name;
+            option.textContent = area.city_name;
+            areaDropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching areas:', error);
+        alert('Could not fetch areas. Please try again.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchCountries(); // Load countries
+    setupEventListeners(); // Set up event listeners for country, city, and area
+});
+
+// Add event listeners for dropdowns
+function setupEventListeners() {
+    document.querySelectorAll('.country-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('change', function() {
+            handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling);
+        });
+    });
+
+    document.querySelectorAll('.city-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('change', function() {
+            handleCityChange(this, this.nextElementSibling);
+        });
+    });
+}
+    
 
 
 

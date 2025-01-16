@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,13 +54,13 @@
             </select>
 
             <div id="commonFields">
-                <input type="text" id="FirstName" name="FirstName" placeholder="First Name" required>
-                <input type="text" id="LastName" name="LastName" placeholder="Last Name" required>
-                <input type="email" id="Email" name="Email" placeholder="Email" required>
-                <input type="text" id="PhoneNumber" name="PhoneNumber" placeholder="Phone Number" required>
-                <input type="date" id="DateOfBirth" name="DateOfBirth" required>
-                <input type="text" id="USER_NAME" name="USER_NAME" placeholder="Username" required>
-                <input type="password" id="PASSWORD_HASH" name="PASSWORD_HASH" placeholder="Password" required>
+                <input type="text" id="FirstName" name="FirstName" placeholder="First Name" >
+                <input type="text" id="LastName" name="LastName" placeholder="Last Name" >
+                <input type="email" id="Email" name="Email" placeholder="Email" >
+                <input type="text" id="PhoneNumber" name="PhoneNumber" placeholder="Phone Number" >
+                <input type="date" id="DateOfBirth" name="DateOfBirth" >
+                <input type="text" id="USER_NAME" name="USER_NAME" placeholder="Username" >
+                <input type="password" id="PASSWORD_HASH" name="PASSWORD_HASH" placeholder="Password" >
             </div>
 
             <button type="submit">Sign Up</button>
@@ -72,8 +74,8 @@
         <h2>Login</h2>
         <form method="post" id="login" action="../Controllers/LoginController.php">
             <input type="hidden" name="action" value="login">
-            <input type="text" id="email" name="email" placeholder="Username" required>
-            <input type="password" id="password" name="password" placeholder="Password" required>
+            <input type="text" id="email" name="email" placeholder="Username" >
+            <input type="password" id="password" name="password" placeholder="Password" >
             <button type="submit">Login</button>
             <button type = "submit" name="provider" value="google">Login with Google</button>
             <button type = "submit" name="provider" value="facebook">Login with Facebook</button>
@@ -83,15 +85,35 @@
     <!-- Redirection Logic -->
     <?php if (!empty($controller->Message)): ?>
         <script>
-    console.log("Message:", "<?php echo addslashes($controller->Message); ?>");
+    console.log("Message isss:", "<?php echo addslashes($controller->Message); ?>");
     const message = "<?php echo addslashes($controller->Message); ?>";
-    // if (message.includes("volunteer")) {
-    //     window.location.href = "../Views/VolunteerMainScreen.php?message=" + message;
-    // } else if (message.includes("admin")) {
-    //     window.location.href = "../Views/AdminControlPanel.php?message=" + message;
-    // } else if (message.includes("organization")) {
-    //     window.location.href = "../Views/OrganizationMainScreen.php?message=" + message;
-    // } 
+        // get the word after email is and assign it to email
+    
+    
+    
+
+    if (message.includes("Google")) {
+        const url = message.match(/url is (.*)/)[1];
+        window.location.href = url ;
+    } 
+    else if (message.includes("admin")) {
+
+        alert(message);
+        const email = message.match(/Email is (.*)/)[1];
+        window.location.href = "../Views/AdminControlPanel.php?message=" + message;
+    } else if (message.includes("organization")) {
+
+        alert(message);
+        const email = message.match(/Email is (.*)/)[1];
+        window.location.href = "../Views/OrganizationMainScreen.php?message=" + message;
+    } 
+    else if (message.includes("volunteer")) {
+        alert(message);
+        const email = message.match(/Email is (.*)/)[1];
+        window.location.href = "../Views/VolunteerProfileView.php?message=" + message + "&email=" + email;
+
+    }
+  
 
 
 </script>

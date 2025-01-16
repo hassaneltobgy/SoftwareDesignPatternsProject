@@ -25,6 +25,9 @@ public function getVolunteerNotifications($UserID){
         return Volunteer::getAllVolunteers();
     }
  
+    public function getVolunteerbyEmail($email) {
+        return Volunteer::get_volunteer_by_email($email);
+    }
 
     public function getVolunteerbyId($id) {
         // echo "getting volunteer by id in controller $id"; 

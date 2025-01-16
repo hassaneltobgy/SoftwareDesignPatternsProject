@@ -4,6 +4,7 @@ require_once 'UserTypeModel.php';
 require_once 'volunteerModel.php';
 require_once 'LocationModel.php';
 require_once "../Models/NotificationModel.php";
+require_once "../Models/NotificationType.php";
 class User {
     private $conn;
     private $table_name = "User";
@@ -65,10 +66,10 @@ class User {
             $FirstName, 
             $LastName, 
             $Email, 
-            $PhoneNumber, 
+            $PhoneNumber= null, 
             $DateOfBirth, 
             $USER_NAME, 
-            $PASSWORD_HASH, 
+            $PASSWORD_HASH= null, 
             $LAST_LOGIN, 
             $ACCOUNT_CREATION_DATE,
             $UserType ,
@@ -107,8 +108,7 @@ class User {
                 echo "Prepare failed: " . $conn->error;
                 return null;
             }
-
-        
+           
             $stmt->bind_param("sssssssssi", $FirstName, $LastName, $Email, $PhoneNumber, $DateOfBirth, $USER_NAME, $PASSWORD_HASH, $LAST_LOGIN, $ACCOUNT_CREATION_DATE, $UserTypeID);
         
             // Execute the query and return the new user
@@ -168,6 +168,7 @@ class User {
             $user->UserType = $user->getUserType();
             $user->Privileges = $user->getPrivileges();
             $user->Locations = $user->getLocations( $user->UserID);
+            $user->UserType = $user->getUserType();
             return $user;
         }
         return null;
@@ -672,8 +673,11 @@ class User {
 
 
     public function add_notification_type($NotificationTypeID) {
-        echo "now in add_notification_type, adding Notification Type for user with ID: $this->UserID, NotificationTypeID: $NotificationTypeID";
+      
         $query = "INSERT INTO User_NotificationType (UserID, NotificationTypeID) VALUES (?, ?)";
+        if ($this->conn === null) {
+            $this->conn = Database::getInstance()->getConnection();
+        }
         $stmt = $this->conn->prepare($query);
     
         $stmt->bind_param("ii", $this->UserID, $NotificationTypeID);

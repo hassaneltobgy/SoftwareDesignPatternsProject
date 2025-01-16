@@ -202,10 +202,10 @@ class Organization extends User
         $FirstName,
         $LastName= null,
         $Email,
-        $PhoneNumber,
-        $DateOfCreation,
+        $PhoneNumber= null,
+        $DateOfCreation= null ,
         $USER_NAME,
-        $password,
+        $password= null,
         $LAST_LOGIN,
         $ACCOUNT_CREATION_DATE,
         $privileges = [],
@@ -221,7 +221,7 @@ class Organization extends User
             $PhoneNumber,
             $DateOfCreation,
             $USER_NAME,
-            password_hash($password, PASSWORD_BCRYPT),
+            $password? password_hash($password, PASSWORD_BCRYPT) : null,
             $LAST_LOGIN,
             $ACCOUNT_CREATION_DATE,
             "organization",
@@ -235,7 +235,7 @@ class Organization extends User
             $conn = Database::getInstance()->getConnection();
             $sql = "INSERT INTO Organization (OrganizationName, OrganizationDescription, OrganizationEmail, OrganizationPhone, OrganizationTypeID, OrganizationWebsite, UserID, OrganizationUsername, OrganizationPASSWORD_HASH, LAST_LOGIN, ACCOUNT_CREATION_DATE, DateOfCreation) VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $password_hash = password_hash($password, PASSWORD_BCRYPT);
+            $password_hash =$password? password_hash($password, PASSWORD_BCRYPT) : null;
             if ($OrganizationDescription == null) {
                 $OrganizationDescription = "No description available.";
             }

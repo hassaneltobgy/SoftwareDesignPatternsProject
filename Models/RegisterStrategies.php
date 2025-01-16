@@ -57,7 +57,7 @@ abstract class AbstractRegister implements RegisterMethodStrategy
         $message = $this->getRegistrationMessage($userType);
 
         return [
-            'message' => $message,
+            'message' => $message . " for $email",
             'user' => $user
         ];
     }
@@ -73,9 +73,52 @@ class FacebookRegister extends AbstractRegister
 
 class GoogleRegister extends AbstractRegister
 {
+
+    public function register(
+        String $firstName,
+        String $lastName,
+        String $email,
+        String $phoneNumber,
+        String $dateOfBirth,
+        String $userName,
+        String $passwordHash,
+        String $userType,
+        String $lastLogin,
+        String $accountCreationDate
+    ) {
+        $client = new Google\Client;
+    
+        $client->setClientId("572633447608-3atq4co4mq3dqqbgidlev8istr33i48n.apps.googleusercontent.com");
+        $client->setClientSecret("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");
+        $userType = strtolower($userType);
+        if ($userType=="volunteer")
+        {$client->setRedirectUri("http://localhost:3000/Views/googlesignupvolunteer.php");
+        }else if ($userType=="organization")
+        {$client->setRedirectUri("http://localhost:3000/Views/googlesignuporganization.php");
+        }else
+        {$client->setRedirectUri("http://localhost:3000/Views/googlesignupadmin.php");
+        }
+        $client->addScope("email");
+        $client->addScope("profile");
+    
+        $url = $client->createAuthUrl();
+    
+        // Store the message in the session for later use
+        session_start();
+        $message = $this->getRegistrationMessage($userType);
+        $_SESSION['message'] = $message;  // Store message in the session
+        
+        return [
+            'message' => $message . " url is $url",
+            'user' => null
+        ];
+    }
+    
+
+
     protected function getRegistrationMessage(string $userType): string
     {
-        return "Successfully registered with Google as a $userType";
+        return "registering with Google as a $userType";
     }
 }
 
@@ -135,13 +178,13 @@ class RegisterMethodContext
             echo "User is not null, user id is: " . $user->UserID;
         }
 
-        if ($message !== null) {
-            $notificationId = NotificationType::getNotificationTypeIdByName("sms");
+        if ($message !== null && $user !== null) {
+            $notificationId = NotificationType::getNotificationTypeIdByName("email");
 
             $user->add_notification_type($notificationId);
 
             $userRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
-            $smsObserver = new NotifyBySMSObserver($userRegisteredNotificationService);
+            $smsObserver = new NotifyByEmailObserver($userRegisteredNotificationService);
             $userRegisteredNotificationService->notify();
         }
 

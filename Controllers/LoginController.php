@@ -17,6 +17,11 @@ class LoginController
         $this->loginContext = new LoginMethodContext();
         $this->RegisterMethodContext = new RegisterMethodContext();
     }
+    public function emailExists($email)
+    {
+        $user = User::get_by_email($email);
+        return $user;
+    }
 
 
     public function handleRequest()
@@ -79,10 +84,10 @@ class LoginController
         $ACCOUNT_CREATION_DATE = date('Y-m-d H:i:s');
         $UserType = $_POST['user_type'] ?? '';
 
-        if (empty($FirstName) || empty($LastName) || empty($Email) || empty($PASSWORD_HASH)) {
-            $this->Message = "Please fill in all required fields";
-            return;
-        }
+        // if (empty($FirstName) || empty($LastName) || empty($Email) || empty($PASSWORD_HASH)) {
+        //     $this->Message = "Please fill in all required fields";
+        //     return;
+        // }
 
             $provider = $_POST['provider'] ?? 'email';
             if ($provider === 'google') {
@@ -118,6 +123,11 @@ class LoginController
         }
 
        
+    }
+    public function determineUserRole($email)
+    {
+        $user = User::get_by_email($email);
+        return $user->UserType;
     }
 
 

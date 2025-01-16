@@ -4,17 +4,19 @@ class UserFactory
     public static function createUser(
         string $userType,
         string $firstName,
-        string $lastName,
+        string $lastName = null,
         string $email,
-        string $phoneNumber,
-        string $dateOfBirth,
+        string $phoneNumber= null,
+        string $dateOfBirth = null,
         string $userName,
         string $passwordHash,
         string $lastLogin,
         string $accountCreationDate
     ) {
+        // convert to lower case 
+        $userType = strtolower($userType);
         switch ($userType) {
-            case 'Volunteer':
+            case 'volunteer':
                 return Volunteer::create_Volunteer(
                     $firstName,
                     $lastName,
@@ -26,7 +28,7 @@ class UserFactory
                     $lastLogin,
                     $accountCreationDate
                 );
-            case 'Organization':
+            case 'organization':
                 return Organization::create_Organization(
                     $firstName,
                     $lastName,
@@ -38,7 +40,7 @@ class UserFactory
                     $lastLogin,
                     $accountCreationDate
                 );
-            case 'Admin':
+            case 'admin':
                 return Admin::create_admin(
                     $firstName,
                     $lastName,

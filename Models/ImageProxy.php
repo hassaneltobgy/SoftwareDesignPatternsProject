@@ -16,6 +16,7 @@ class RealImage implements IImage {
 
     private function loadFromDisk($fileName) {
         // echo "Loading image from disk...\n";
+        echo "file name is ".$fileName;
         if (!file_exists($fileName)) {
             throw new Exception("File not found: " . $fileName);
         }
