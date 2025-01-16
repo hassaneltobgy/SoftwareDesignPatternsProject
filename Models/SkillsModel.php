@@ -1,6 +1,6 @@
 <?php
 require_once "Database.php";
-class Skill 
+class Skill implements Iterator 
 {
     private $table = "Skill";
     private $conn;
@@ -8,6 +8,9 @@ class Skill
     public $SkillName;
     public $SkillLevel;
     public $SkillTypes = [];
+    private $skills = [];  // This will hold all skills
+    private $position = 0;  // Iterator position
+
 
     public function __construct($id = null, $SkillName = null, $SkillLevel = null, $SkillTypes = null)
     {
@@ -185,6 +188,35 @@ class Skill
         }
         
         return $skillTypes;
+    }
+
+    public function current(): mixed 
+    {
+        return $this->skills[$this->position];  // Return the current skill object
+    }
+
+    // Return the current position/index
+    public function key(): mixed 
+    {
+        return $this->position;  
+    }
+
+    // Move to the next skill in the array
+    public function next(): void 
+    {
+        $this->position++;  
+    }
+
+    // Reset the array pointer to the first element
+    public function rewind(): void 
+    {
+        $this->position = 0;  
+    }
+
+    // Check if the current pointer is valid
+    public function valid(): bool 
+    {
+        return isset($this->skills[$this->position]);
     }
 }
     

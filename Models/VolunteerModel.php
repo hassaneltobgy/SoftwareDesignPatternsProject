@@ -162,11 +162,11 @@ class Volunteer extends User {
                 $volunteer_history = [];
             }
             
-            for ($i = 0; $i < count($skills); $i++) {
-                $volunteer->add_skill($skills[$i]);
+            foreach ($skills as $skill) {
+                $volunteer->add_skill($skill);
             }
-            for ($i = 0; $i < count($volunteer_history); $i++) {
-                $volunteer->add_history($volunteer_history[$i]);
+            foreach ($volunteer_history as $history) {
+                $volunteer->add_history($history);
             }
             if ($stmt->execute()) {
                 $volunteer->VolunteerID = $conn->insert_id;

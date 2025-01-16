@@ -119,8 +119,8 @@ class User {
                     return $user_new;
                 }
                 for ($i = 0; $i < count($privileges); $i++) {
-                    $privilege = $privileges[$i];
-                    $user_new->addprivilege($privilege);
+                    $privilegeName = $privileges[$i];
+                    $user_new->addprivilege($privilegeName);
                 }
                 return $user_new;
             } else {

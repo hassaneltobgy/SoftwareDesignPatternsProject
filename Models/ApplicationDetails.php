@@ -42,15 +42,7 @@ class ApplicationDetails
         // get notification types that the volunteer has 
         $NotificationTypes = User:: get_notification_types($volunteer->UserID);
         for ($i = 0; $i < count($NotificationTypes); $i++) {
-            if ($NotificationTypes[$i]->TypeName == "sms"){
-                $smsObserver = new NotifyBySMSObserver($notificationService);
-            }
-            else if ($NotificationTypes[$i]->TypeName == "email"){
-                $emailObserver = new NotifyByEmailObserver($notificationService);
-            }
-            else if ($NotificationTypes[$i]->TypeName == "push notifications"){
-                $inAppObserver = new NotifyByInAppObserver($notificationService);
-            }
+            $observer = NotificationObserverFactory::createObserver($NotificationTypes[$i], $notificationService);
 
         }
 
@@ -62,16 +54,7 @@ class ApplicationDetails
         // get the notification types that the organization has 
         $NotificationTypes = User:: get_notification_types($organization->UserID);
         for ($i = 0; $i < count($NotificationTypes); $i++) {
-            if ($NotificationTypes[$i]->TypeName == "sms"){
-                $smsObserver = new NotifyBySMSObserver($notifiicationServiceForOrganization);
-            }
-            else if ($NotificationTypes[$i]->TypeName == "email"){
-                $emailObserver = new NotifyByEmailObserver($notifiicationServiceForOrganization);
-            }
-            else if ($NotificationTypes[$i]->TypeName == "push notifications"){
-                $inAppObserver = new NotifyByInAppObserver($notifiicationServiceForOrganization);
-            }
-
+            $observer = NotificationObserverFactory::createObserver($NotificationTypes[$i], $notifiicationServiceForOrganization);
         }
         
         $notifiicationServiceForOrganization->notify();

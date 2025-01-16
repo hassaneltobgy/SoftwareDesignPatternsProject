@@ -1,5 +1,5 @@
 <?php
-class VolunteerHistory 
+class VolunteerHistory implements Iterator
 {
     private $table = "VolunteerHistory";
 
@@ -9,6 +9,9 @@ class VolunteerHistory
     private $conn;
     public $Event;  
     public $volunteerFeedbacks = [];
+
+    private $position = 0;  // Iterator position
+    private $volunteerHistories = [];  // This will hold all volunteer histories
 
     public function __construct($id = null)
     {
@@ -262,6 +265,32 @@ class VolunteerHistory
         }
 
 
+    }
+
+    // iterator methods
+    public function rewind(): void
+    {
+        $this->position = 0;
+    }
+
+    public function current(): mixed
+    {
+        return $this->volunteerHistories[$this->position];
+    }
+
+    public function key(): int
+    {
+        return $this->position;
+    }
+
+    public function next(): void
+    {
+        ++$this->position;
+    }
+   
+    public function valid(): bool 
+    {
+        return isset($this->volunteerHistories[$this->position]);
     }
 
 }
