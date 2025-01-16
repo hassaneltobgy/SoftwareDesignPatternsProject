@@ -1,5 +1,6 @@
 <?php
 require_once 'Database.php';
+require_once 'DBProxy.php';
 class Privilege 
 {
     public $PrivilegeID;
@@ -7,20 +8,27 @@ class Privilege
     public $Description;
     public $AccessLevel;
     private $conn;
+    private $dbProxy;
 
     public function __construct($id= null) {
         $this->conn = Database::getInstance()->getConnection();
         $this->PrivilegeID = $id;
+        $this->dbProxy = new DBProxy(true);
     }
 
-    public function create($privilegeName, $description, $accessLevel) {
+    public function create($privilegeName, $description, $accessLevel)
+    {
         $query = "INSERT INTO Privilege (PrivilegeName, Description, AccessLevel) VALUES (?, ?, ?)";
-        $stmt = $this->conn->prepare($query);
-
-        $stmt->bind_param('ssi', $privilegeName, $description, $accessLevel);
-
-        return $stmt->execute();
+        $params = [$privilegeName, $description, $accessLevel];
+    
+        if ($this->dbProxy->executeQuery($query, $params)) {
+            return true;
+        } else {
+            echo "Error creating privilege";
+            return false;
+        }
     }
+    
 
     // Method to read a Privilege by its ID
     public function read() {
@@ -47,28 +55,34 @@ class Privilege
         return $row ? true : false;
     }
 
-    public function update($privilegeName, $description, $accessLevel) {
-        $query = "UPDATE Privilege SET PrivilegeName = ?, Description = ?, AccessLevel = ? WHERE PrivilegeID = ?";
-        $stmt = $this->conn->prepare($query);
+    public function update($privilegeName, $description, $accessLevel)
+{
+    $query = "UPDATE Privilege SET PrivilegeName = ?, Description = ?, AccessLevel = ? WHERE PrivilegeID = ?";
+    $params = [$privilegeName, $description, $accessLevel, $this->PrivilegeID];
 
-        $stmt->bind_param('ssii', $privilegeName, $description, $accessLevel, $this->PrivilegeID);
-
-        return $stmt->execute();
+    if ($this->dbProxy->executeQuery($query, $params)) {
+        return true;
+    } else {
+        echo "Error updating privilege with ID: $this->PrivilegeID";
+        return false;
     }
+}
 
-    public function delete() {
-        echo "deleting privilege with id: $this->PrivilegeID  ";
-        $query = "DELETE FROM Privilege WHERE PrivilegeID = ?";
-        $stmt = $this->conn->prepare($query);
 
-        $stmt->bind_param('i', $this->PrivilegeID);
+public function delete()
+{
+    echo "Deleting privilege with ID: $this->PrivilegeID";
+    $query = "DELETE FROM Privilege WHERE PrivilegeID = ?";
+    $params = [$this->PrivilegeID];
 
-        if ($stmt->execute()){
-            return true;
-        } else {
-            return $stmt->error;
-        }
+    if ($this->dbProxy->executeQuery($query, $params)) {
+        return true;
+    } else {
+        echo "Error deleting privilege with ID: $this->PrivilegeID";
+        return false;
     }
+}
+
 
     public static function getAllPrivileges() {
         $query = "SELECT PrivilegeID, PrivilegeName, Description, AccessLevel FROM Privilege";

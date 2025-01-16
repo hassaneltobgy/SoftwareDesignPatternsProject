@@ -5,6 +5,8 @@ require_once 'EmergencyContactModel.php';
 require_once 'VolunteerHistoryModel.php';
 require_once 'Event.php';
 require_once 'SkillsModel.php';
+require_once 'ImageProxy.php';
+require_once 'BadgeFactory.php';
 class Volunteer extends User {
     public $VolunteerID;   
     public $UserID; 
@@ -15,6 +17,7 @@ class Volunteer extends User {
     public $badge;  
     public $EmergencyContacts=[];   
     private $conn;
+    private $ProxyImage;
     private $table_name = "Volunteer";
 
     public function __construct($id = null) {
@@ -46,7 +49,7 @@ class Volunteer extends User {
                 $this->volunteer_history = $this->get_history();
                 $this->badge = $this->get_badge();
                 $this->EmergencyContacts = $this->getEmergencyContacts();
-                // echo "BADGE TITLE IS " . $this->badge->get_title();
+                $this->ProxyImage = $this->getProxyImageObject($row['ImageUrl']);
             } else {
                 echo "No volunteer found with ID: $id";
             }
@@ -55,6 +58,13 @@ class Volunteer extends User {
         }
     }
     
+    public function getProxyImageObject($imageUrl) {
+        return new ProxyImage($imageUrl);
+    }
+    public function getProxyImage()
+    {
+        return $this->ProxyImage;
+    }
 
     static public function create_Volunteer(
         $FirstName, 
@@ -282,6 +292,7 @@ class Volunteer extends User {
         $volunteer->skills = $volunteer->get_skills();
         $volunteer->volunteer_history = $volunteer->get_history();
         $volunteer->badge = $volunteer->get_badge();
+        $volunteer-> ProxyImage = $volunteer->getProxyImageObject($row['ImageUrl']);
         return $volunteer;
 
     }

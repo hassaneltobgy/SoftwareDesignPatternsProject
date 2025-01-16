@@ -1844,6 +1844,7 @@ CREATE TABLE `volunteer` (
   `NumberOfEventsAttended` int DEFAULT NULL,
   `VolunteerBadgeID` int DEFAULT NULL,
   `UserID` int DEFAULT NULL,
+  `ImageUrl` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`VolunteerID`),
   UNIQUE KEY `Email` (`Email`),
   KEY `VolunteerBadgeID` (`VolunteerBadgeID`),
@@ -1859,7 +1860,7 @@ CREATE TABLE `volunteer` (
 
 LOCK TABLES `volunteer` WRITE;
 /*!40000 ALTER TABLE `volunteer` DISABLE KEYS */;
-INSERT INTO `volunteer` VALUES (47,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',0,0,9,86),(49,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhussieny@gmail.com','$2y$10$8yEwVjfhu2KCFmNTqqqbRunFZFzhUeh5CyyXJWyqpoOlhmHDAJnZW','2002-02-02','2002-02-02',13,13,10,93),(51,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,95),(52,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$yJQ0mm86kf984pBXPvnwGu6GLDolfYaDq4aO3m.G3VGwQNqyfUhWm','2024-12-28','2024-12-28',0,0,7,96),(53,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$r92GvTrRiBsAo2k0fHc9TuUVx1RPbDthh/NckJCUnmw3OXTTg4FWm','2024-12-28','2024-12-28',0,0,11,97),(54,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$qgr2MldxxEz7gJhs5n.6UuO99YbbdnAiz7spcWKXxAj8/kbr4y0lO','2024-12-28','2024-12-28',0,0,7,98);
+INSERT INTO `volunteer` VALUES (47,'Kellyyy','doe','kelly.mike@volunteer.com','01283103800','2002-02-02','kelly.mike@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','3333-03-02','0222-02-01',0,0,9,86,NULL),(49,'Farida','Elhusseiny','faridaelhussieny@gmail.com','01283103800','2002-08-27','faridaelhussieny@gmail.com','$2y$10$8yEwVjfhu2KCFmNTqqqbRunFZFzhUeh5CyyXJWyqpoOlhmHDAJnZW','2002-02-02','2002-02-02',13,13,10,93,'D:\\ASU\\Mobile Programming\\hedieatyfinalproject\\assets\\free\\3d-illustration-with-online-avatar_23-2151303097.jpeg'),(51,'John','Doe','john.doe@example.com','12345678','2002-02-03','john@example.com','$2a$12$2bpj2r6QPAjweqJrDCMNveqdu.G1YKMi2DGpxetxlXwOYsbyiHXZ.','2002-02-02','2002-02-02',0,0,7,95,NULL),(52,'Ziko','Zaky','Ziko@example.com','01283103800','2009-02-02','Ziko@example.com','$2y$10$yJQ0mm86kf984pBXPvnwGu6GLDolfYaDq4aO3m.G3VGwQNqyfUhWm','2024-12-28','2024-12-28',0,0,7,96,NULL),(53,'Frank','Hank','Frank@example.com','01283103800','2002-02-02','Frank@example.com','$2y$10$r92GvTrRiBsAo2k0fHc9TuUVx1RPbDthh/NckJCUnmw3OXTTg4FWm','2024-12-28','2024-12-28',0,0,11,97,NULL),(54,'Serj','Tankian','Serj@example.com','01283103800','2002-02-02','Serj@example.com','$2y$10$qgr2MldxxEz7gJhs5n.6UuO99YbbdnAiz7spcWKXxAj8/kbr4y0lO','2024-12-28','2024-12-28',0,0,7,98,NULL);
 /*!40000 ALTER TABLE `volunteer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2137,4 +2138,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-01-15 23:21:48
+-- Dump completed on 2025-01-16 15:17:30

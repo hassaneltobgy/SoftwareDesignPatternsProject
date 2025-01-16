@@ -16,7 +16,7 @@ class VolunteerController {
     }
 
 public function getVolunteerNotifications($UserID){
-    echo "UserID is in getVolunteerNotifications $UserID";
+    // echo "UserID is in getVolunteerNotifications $UserID";
     $user = new User($UserID);
     $notifications =  $user->getAllNotifications();
     return $notifications;
@@ -27,7 +27,7 @@ public function getVolunteerNotifications($UserID){
  
 
     public function getVolunteerbyId($id) {
-        echo "getting volunteer by id in controller $id"; 
+        // echo "getting volunteer by id in controller $id"; 
         return Volunteer::get_volunteer_by_id($id);
     }
 

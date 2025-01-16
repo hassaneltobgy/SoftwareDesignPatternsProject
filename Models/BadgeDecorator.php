@@ -1,5 +1,6 @@
 <?php
 require_once '../Models/PrivilegeModel.php';
+require_once '../Models/DBProxy.php';
 abstract class VolunteerBadge
 {
     public $privileges = []; 
@@ -8,6 +9,7 @@ abstract class VolunteerBadge
     protected $tableName;
     protected $conn;
     public $badge_id;
+    private $dbProxy;
     
 
     public function __construct($badge_id= null)
@@ -15,6 +17,7 @@ abstract class VolunteerBadge
         $this->conn = (Database::getInstance())->getConnection();
         $this->badge_id = $badge_id;
         $this-> tableName = "VolunteerBadge";
+        $this->dbProxy = new DBProxy(true);
 
     }
 
@@ -70,58 +73,59 @@ abstract class VolunteerBadge
 
         return $privileges;
     }
-    public function add_privilege($privilege) {
-        $query = "INSERT INTO VolunteerBadge_Privilege (VolunteerBadgeID, PrivilegeID) VALUES (?, ?)";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param('ii', $this->badge_id, $privilege->PrivilegeID);
-    
-        if ($stmt->execute()) {
-            $this->privileges[] = $privilege;
-            return  $privilege;
-        }
-        
-        return null;
+    public function add_privilege($privilege)
+{
+    $query = "INSERT INTO VolunteerBadge_Privilege (VolunteerBadgeID, PrivilegeID) VALUES (?, ?)";
+    $params = [$this->badge_id, $privilege->PrivilegeID];
+
+    if ($this->dbProxy->executeQuery($query, $params)) {
+        $this->privileges[] = $privilege;
+        return $privilege;
     }
+
+    return null;
+}
+
     
 
-    public function remove_privilege($privilege) 
-    {
-            $query = "DELETE FROM VolunteerBadge_Privilege WHERE VolunteerBadgeID = ? AND PrivilegeID = ?";
-            $stmt = $this->conn->prepare($query);
+public function remove_privilege($privilege)
+{
+    $query = "DELETE FROM VolunteerBadge_Privilege WHERE VolunteerBadgeID = ? AND PrivilegeID = ?";
+    $params = [$this->badge_id, $privilege->PrivilegeID];
 
-            $stmt->bind_param('ii', $this->badge_id, $privilege->PrivilegeID);
+    return $this->dbProxy->executeQuery($query, $params);
+}
 
-            return $stmt->execute();
-        }
 
 public function modify_privilege_for_a_certain_badge($old_privilege, $new_privilege) {
     $this->remove_privilege($old_privilege);
     return $this->add_privilege($new_privilege);
 }
 
-   public function add_badge($score, $title) {
-    $query = "INSERT INTO VolunteerBadge ( score, title) VALUES (?, ?, ?)";
-    $stmt = $this->conn->prepare($query);
-    $stmt->bind_param('is', $score, $title);
+public function add_badge($score, $title)
+{
+    $query = "INSERT INTO VolunteerBadge (score, title) VALUES (?, ?)";
+    $params = [$score, $title];
 
-    if ($stmt->execute()) {
-        return true;
-    }
-    return false;
-    
+    return $this->dbProxy->executeQuery($query, $params);
 }
-public function remove_badge() {
+
+public function remove_badge()
+{
     $query = "DELETE FROM VolunteerBadge WHERE badge_id = ?";
-    $stmt = $this->conn->prepare($query);
-    $stmt->bind_param('i', $this->badge_id);
-    return $stmt->execute();
+    $params = [$this->badge_id];
+
+    return $this->dbProxy->executeQuery($query, $params);
 }
-public function update_badge($score, $title) {
+
+public function update_badge($score, $title)
+{
     $query = "UPDATE VolunteerBadge SET score = ?, title = ? WHERE badge_id = ?";
-    $stmt = $this->conn->prepare($query);
-    $stmt->bind_param('isi', $score, $title, $this->badge_id);
-    return $stmt->execute();
+    $params = [$score, $title, $this->badge_id];
+
+    return $this->dbProxy->executeQuery($query, $params);
 }
+
 public function get_badge_by_id($badge_id) {
     $query = "SELECT * FROM VolunteerBadge WHERE badge_id = ?";
     $stmt = $this->conn->prepare($query);
