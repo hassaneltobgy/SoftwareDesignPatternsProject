@@ -744,37 +744,7 @@ class Volunteer extends User {
             return null;
         }
     
-        // Step 3: Create the base badge object (Start with a base badge)
-        $baseBadge = new StarterBadgeDecorator($badge_id);
-    
-        // Apply decorators based on badge hierarchy
-        switch ($badge_name) {
-            case 'Leader Badge':
-                return new LeaderBadgeDecorator(
-                    new MasterBadgeDecorator(
-                        new ExpertBadgeDecorator(
-                            new AdvancedBadgeDecorator($baseBadge)
-                        )
-                    )
-                );
-            case 'Master Badge':
-                return new MasterBadgeDecorator(
-                    new ExpertBadgeDecorator(
-                        new AdvancedBadgeDecorator($baseBadge)
-                    )
-                );
-            case 'Expert Badge':
-                return new ExpertBadgeDecorator(
-                    new AdvancedBadgeDecorator($baseBadge)
-                );
-            case 'Advanced Badge':
-                return new AdvancedBadgeDecorator($baseBadge);
-            case 'Starter Badge':
-                return $baseBadge;
-            default:
-                echo "No valid badge found for the name: " . $badge_name;
-                return null;
-        }
+        return BadgeFactory::createBadge($badge_name, $badge_id);
     }
     
 
@@ -808,38 +778,7 @@ class Volunteer extends User {
         if (!$row) {
             return null; // Badge not found
         }
-        $baseBadge = new StarterBadgeDecorator($badge_id);
-        // Step 4: Apply decorators based on badge hierarchy
-        switch ($badge_title) {
-            
-            case 'Leader Badge':
-                return new LeaderBadgeDecorator(
-                    new MasterBadgeDecorator(
-                        new ExpertBadgeDecorator(
-                            new AdvancedBadgeDecorator($baseBadge)
-                        )
-                    )
-                );
-            case 'Master Badge':
-                return new MasterBadgeDecorator(
-                    new ExpertBadgeDecorator(
-                        new AdvancedBadgeDecorator($baseBadge)
-                    )
-                );
-            case 'Expert Badge':
-                echo "now returning expert badge";
-                return new ExpertBadgeDecorator(
-                    new AdvancedBadgeDecorator($baseBadge)
-                );
-            case 'Advanced Badge':
-                return new AdvancedBadgeDecorator($baseBadge);
-            case 'Starter Badge':
-                echo "returning base badge with title " . $baseBadge->get_title() . ";";
-
-                return $baseBadge;
-            default:
-                return null; // No valid badge found
-        }
+        return BadgeFactory::createBadge($badge_title, $badge_id);
     }
     
 

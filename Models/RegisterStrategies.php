@@ -5,6 +5,8 @@ require_once '../Models/OrganizationModel.php';
 require_once '../Models/NotificationObserver.php';
 require_once '../Models/NotificationModel.php';
 require_once '../Models/NotificationType.php';
+require '../Models/UserFactory.php';
+
 interface RegisterMethodStrategy
 {
     public function register(
@@ -18,226 +20,73 @@ interface RegisterMethodStrategy
         String $userType,
         String $lastLogin,
         String $accountCreationDate
-
     );
 }
 
 
-class FacebookRegister implements RegisterMethodStrategy
-{
-    public function register(
-        String $FirstName,
-        String $LastName,
-        String $Email,
-        String $PhoneNumber,
-        String $DateOfBirth,
-        String $USER_NAME,
-        String $password,
-        String $userType,
-        String $LAST_LOGIN,
-        String $ACCOUNT_CREATION_DATE
-    )
-    {
-        if ($userType === 'Volunteer') {
-            
-            $volunteer = Volunteer::create_Volunteer(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE  );
-                return [
-                    'message' => "Successfully registered with Facebook as a volunteer",
-                    'user' => $volunteer
-                ];
-        }
-        else if ($userType === 'Organization') {
-            $organization = Organization::create_Organization(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE );
-                return [ 
-                    'message' => "Successfully registered with Email as an organization",
-                    'user' => $organization
-                ];
 
-        }
-        else if ($userType === 'Admin') {
-            $admin = Admin::create_admin(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE );
-                return [
-                    'message' => "Successfully registered with Email as an admin",
-                    'user' => $admin
-                ];
-        }
-       
+abstract class AbstractRegister implements RegisterMethodStrategy
+{
+    abstract protected function getRegistrationMessage(string $userType): string;
+
+    public function register(
+        String $firstName,
+        String $lastName,
+        String $email,
+        String $phoneNumber,
+        String $dateOfBirth,
+        String $userName,
+        String $passwordHash,
+        String $userType,
+        String $lastLogin,
+        String $accountCreationDate
+    ) {
+        $user = UserFactory::createUser(
+            $userType,
+            $firstName,
+            $lastName,
+            $email,
+            $phoneNumber,
+            $dateOfBirth,
+            $userName,
+            $passwordHash,
+            $lastLogin,
+            $accountCreationDate
+        );
+
+        $message = $this->getRegistrationMessage($userType);
+
+        return [
+            'message' => $message,
+            'user' => $user
+        ];
     }
 }
 
-   
-
-
-class GoogleRegister implements RegisterMethodStrategy
+class FacebookRegister extends AbstractRegister
 {
-    public function register(
-        String $FirstName,
-        String $LastName,
-        String $Email,
-        String $PhoneNumber,
-        String $DateOfBirth,
-        String $USER_NAME,
-        String $password,
-        String $userType,
-        String $LAST_LOGIN,
-        String $ACCOUNT_CREATION_DATE
-    )
+    protected function getRegistrationMessage(string $userType): string
     {
-        if ($userType === 'Volunteer') {
-            
-            $volunteer = Volunteer::create_Volunteer(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE  );
-                return [ 
-                    'message' => "Successfully registered with Google as a volunteer",
-                    'user' => $volunteer
-                ];
-        }
-        else if ($userType === 'Organization') {
-            $organization = Organization::create_Organization(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE );
-                return [
-                    'message' => "Successfully registered with Google as an organization",
-                    'user' => $organization
-                ];
-
-        }
-        else if ($userType === 'Admin') {
-            $admin = Admin::create_admin(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE );
-                return [
-                    'message' => "Successfully registered with Google as an admin",
-                    'user' => $admin
-                ];
-        }
-
-
-           return null;
-        }
-       
+        return "Successfully registered with Facebook as a $userType";
     }
-
-   
-
-class EmailRegister implements RegisterMethodStrategy
-{
-    public function register(
-        String $FirstName,
-        String $LastName,
-        String $Email,
-        String $PhoneNumber,
-        String $DateOfBirth,
-        String $USER_NAME,
-        String $password,
-        String $userType,
-        String $LAST_LOGIN,
-        String $ACCOUNT_CREATION_DATE
-    )
-    {
-        if ($userType === 'Volunteer') {
-            
-            $volunteer = Volunteer::create_Volunteer(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE  );
-                return [
-                    'message' => "Successfully registered with Facebook as a volunteer",
-                    'user' => $volunteer
-                ];
-        }
-        else if ($userType === 'Organization') {
-            $organization = Organization::create_Organization(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE );
-                return [
-                    'message' => "Successfully registered with Facebook as an organization",
-                    'user' => $organization
-                ];
-
-        }
-        else if ($userType === 'Admin') {
-            $admin = Admin::create_admin(
-                $FirstName, 
-                $LastName, 
-                $Email, 
-                $PhoneNumber, 
-                $DateOfBirth, 
-                $USER_NAME, 
-                $password, 
-                $LAST_LOGIN, 
-                $ACCOUNT_CREATION_DATE );
-                return [
-                    'message' => "Successfully registered with Facebook as an admin",
-                    'user' => $admin
-                ];
-        }
-           return null;
-        }
-       
 }
+
+class GoogleRegister extends AbstractRegister
+{
+    protected function getRegistrationMessage(string $userType): string
+    {
+        return "Successfully registered with Google as a $userType";
+    }
+}
+
+class EmailRegister extends AbstractRegister
+{
+    protected function getRegistrationMessage(string $userType): string
+    {
+        return "Successfully registered with Email as a $userType";
+    }
+}
+
 class RegisterMethodContext
 {
     private RegisterMethodStrategy $strategy;
@@ -253,59 +102,49 @@ class RegisterMethodContext
     }
 
     public function register(
-        String $FirstName,
-        String $LastName,
-        String $Email,
-        String $PhoneNumber,
-        String $DateOfBirth,
-        String $USER_NAME,
-        String $password,
+        String $firstName,
+        String $lastName,
+        String $email,
+        String $phoneNumber,
+        String $dateOfBirth,
+        String $userName,
+        String $passwordHash,
         String $userType,
-        String $LAST_LOGIN,
-        String $ACCOUNT_CREATION_DATE
-    )
-    {
-
-        
-
-        $result =  $this->strategy->register(
-            $FirstName,
-            $LastName,
-            $Email,
-            $PhoneNumber,
-            $DateOfBirth,
-            $USER_NAME,
-            $password,
+        String $lastLogin,
+        String $accountCreationDate
+    ) {
+        $result = $this->strategy->register(
+            $firstName,
+            $lastName,
+            $email,
+            $phoneNumber,
+            $dateOfBirth,
+            $userName,
+            $passwordHash,
             $userType,
-            $LAST_LOGIN,
-            $ACCOUNT_CREATION_DATE
-
+            $lastLogin,
+            $accountCreationDate
         );
-        $msg = $result['message'];
+
+        $message = $result['message'];
         $user = $result['user'];
 
-        // send an email to the user after registration is successful because this the default user type
-        // insert in table user_notificationtype the notification type id and the user id
-
-        // send a notification to the user after registration is successful
-        if ($user==null)
-        echo "User is null";
-        else{
-            echo "User is not null, user id is: ".$user->UserID;
+        if ($user === null) {
+            echo "User is null";
+        } else {
+            echo "User is not null, user id is: " . $user->UserID;
         }
 
-        if ($msg !== null) {
-            $conn = Database::getInstance()->getConnection();
-            $NotificationId = NotificationType::getNotificationTypeIdByName("sms");
-        
-            $user->add_notification_type($NotificationId);
+        if ($message !== null) {
+            $notificationId = NotificationType::getNotificationTypeIdByName("sms");
 
-           
-            
-            $UserRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
-            $smsObserver = new NotifyBySMSObserver($UserRegisteredNotificationService);
-            $UserRegisteredNotificationService->notify();
+            $user->add_notification_type($notificationId);
+
+            $userRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
+            $smsObserver = new NotifyBySMSObserver($userRegisteredNotificationService);
+            $userRegisteredNotificationService->notify();
         }
-        return $msg;
+
+        return $message;
     }
 }
