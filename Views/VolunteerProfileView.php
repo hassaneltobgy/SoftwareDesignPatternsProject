@@ -1,6 +1,7 @@
 <?php
 require_once '../Controllers/VolunteerController.php';
-
+require_once '../Controllers/EventController.php';
+require_once '../Models/BadgeFactory.php';
 
 
 $apiUrl = "https://www.universal-tutorial.com/api/countries/";
@@ -57,18 +58,19 @@ $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyM
 
 
 $controller = new VolunteerController();
+$controller2 = new EventController();
+
+// Retrieve all events
+$events = $controller2->getAllEvents();
+
+
+
 
 
 // $controller->insertCountriesIntoDB($countryNames);
-
-
 // assuming that the controller has a method to get the volunteer id from the session
 $dummy_id = 49;
 $volunteer = $controller->getVolunteerbyId($dummy_id);
-//will get the proxy image using the url specified in db
-$proxyImage = $volunteer->getProxyImage();
-$tempImagePath = $proxyImage->display();
-
 $allSkillTypes = $controller->getAllSkillTypes(); // This function fetches all skill types
 
 ?>
@@ -124,21 +126,10 @@ function closeNav() {
     container.style.transition = "margin-left 0.3s ease, width 0.3s ease"; // Smooth transition
 }
 </script>
-
     <div class="container">
         <!-- Profile Section -->
         <div class="section">
             <h1>Volunteer Profile</h1>
-            <?php if (isset($error)): ?>
-                <p style="color: red;"><?= $error ?></p>
-            <?php else: ?>
-                <div class="profile-image-container">
-    <img class="profile-image" src="<?= $tempImagePath ?>" alt="Profile Image">
-</div>
-            <?php endif; ?>
-
-
-
             <form action= "VolunteerProfileView.php" method="POST">
             <input type="hidden" name="action" value="editProfileData">
 
@@ -345,7 +336,7 @@ function closeNav() {
 
              <div>
                 <label for="EventLocation">Event Location</label>
-            <select class="country-dropdown" name="locations[<?php echo $locationIndex; ?>][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)">
+         <!--   <select class="country-dropdown" name="locations[<?php echo $locationIndex; ?>][country]" onchange="handleCountryChange(this, this.nextElementSibling, this.nextElementSibling.nextElementSibling)"> -->
         <option value="">Select Country</option>
     </select>
     <select class="city-dropdown" name="locations[<?php echo $locationIndex; ?>][city]" onchange="handleCityChange(this, this.nextElementSibling)">
@@ -573,11 +564,80 @@ function closeNav() {
         <?php endforeach; ?>
     </ul>
 </div>
+ 
+
+  
+    <h2>Events</h2>
+   
+    <div class="event-container">
+    <?php if (!empty($events)): ?>
+        <?php foreach ($events as $event): ?>
+        <div class="event-card">
+            <h4><strong>Name:</strong> <?= htmlspecialchars($event->EventName); ?></h4>
+            <p><strong>Date:</strong> <?= htmlspecialchars($event->EventDate); ?></p>
+            <p><strong>Description:</strong> <?= htmlspecialchars($event->EventDescription); ?></p>
+            <button class="apply-button" onclick="applyForEvent(<?= htmlspecialchars($event->EventID); ?>)">
+                Apply
+            </button>
+        </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <p>No events found.</p>
+    <?php endif; ?>
+</div>
+
+<style>
+/* Container styles */
+.event-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Space between event cards */
+    justify-content: center; /* Center the cards */
+    padding: 20px;
+}
+
+/* Event card styles */
+.event-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    width: 250px; /* Fixed width for uniformity */
+    text-align: center;
+}
+
+/* Button styles */
+.apply-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.apply-button:hover {
+    background-color: #45a049;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .event-card {
+        width: 100%; /* Full width on small screens */
+    }
+}
+</style>
+
 
     </div>
+
+    
 </body>
 </html>
-<script type="module">
+<script>
 
 function saveLocations(LocationID= null,UserID, volunteerID, areaDropdowns, cityDropdowns, countryDropdowns) {
     console.log("now saving locations");
@@ -626,11 +686,53 @@ function saveLocations(LocationID= null,UserID, volunteerID, areaDropdowns, city
         });
 }
 
-import { ApiServiceProxy } from '../Models/ApiServiceProxy.js';
-const apiProxy = new ApiServiceProxy(); // Use Proxy instead of directly calling RealApiService
+
+
+
+    async function fetchAccessToken() {
+    const url = "https://www.universal-tutorial.com/api/getaccesstoken";
+    const headers = {
+        "Accept": "application/json",
+        "api-token": "ZZFUvVvUxZUDUgvIgH5VNHcNUv9I7GkcTMhhVwZBJtLLbQPXKLHpoKrDQz113PfJrkE", // Replace with your actual API token
+        "user-email": "20p6022@eng.asu.edu.eg" // Replace with your actual email
+    };
+    
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: headers
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch access token");
+        }
+
+        const data = await response.json();
+        console.log("Access Token:", data.auth_token); // Assuming the token is returned as 'auth_token'
+        return data.auth_token; // Return the token for further use
+    } catch (error) {
+        console.error("Error fetching access token:", error);
+    }
+}
+
+fetchAccessToken();
+
 async function fetchCountries() {
     try {
-        const countries = await apiProxy.fetchCountries(); // Use Proxy method
+        const response = await fetch("https://www.universal-tutorial.com/api/countries/", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ", // Replace with your actual token
+                "Accept": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error fetching countries');
+        }
+
+        const countries = await response.json(); // Assuming API returns an array of countries
         const countryList = countries.map(country => country.country_name).sort();
 
         // Populate all country dropdowns
@@ -657,24 +759,41 @@ document.addEventListener('DOMContentLoaded', fetchCountries);
 // Handle country change to fetch cities
 // Handle country change to fetch states (cities in your naming convention)
 async function handleCountryChange(countryDropdown, cityDropdown, areaDropdown) {
-    const selectedCountry = countryDropdown.value;
+    const selectedCountry = countryDropdown.value; // Use country name (e.g., "United States")
     if (!selectedCountry) return;
 
     try {
-        console.log('Fetching states for', selectedCountry);
+        console.log('Fetching states (cities) for', selectedCountry);
 
-        const states = await apiProxy.fetchStates(selectedCountry); // Use Proxy method
+        // Fetch states (cities) for the selected country
+        const response = await fetch(`https://www.universal-tutorial.com/api/states/${selectedCountry}`, {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ", // Replace with your actual token
+                'Accept': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`State (city) API returned status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const states = data; // The response returns states directly
+
+        // Populate the city dropdown (states in your case)
         cityDropdown.innerHTML = '<option value="">Select City</option>';
         states.forEach(state => {
             const option = document.createElement('option');
-            option.value = state.state_name;
+            option.value = state.state_name; // Use the correct field from API response
             option.textContent = state.state_name;
             cityDropdown.appendChild(option);
         });
 
+        // Clear the area dropdown since it's dependent on the city
         areaDropdown.innerHTML = '<option value="">Select Area</option>';
     } catch (error) {
-        console.error('Error fetching states:', error);
+        console.error('Error fetching states (cities):', error);
         alert('Could not fetch cities. Please try again.');
     }
 }
@@ -683,18 +802,35 @@ async function handleCountryChange(countryDropdown, cityDropdown, areaDropdown) 
 
 
 // Handle city change to fetch areas
+// Handle city change to fetch areas
 async function handleCityChange(cityDropdown, areaDropdown) {
-    const selectedCity = cityDropdown.value;
+    const selectedCity = cityDropdown.value; // City is now a state in your naming convention
     if (!selectedCity) return;
 
     try {
-        console.log('Fetching areas for city:', selectedCity);
+        console.log('Fetching areas for city (state):', selectedCity);
 
-        const areas = await apiProxy.fetchCities(selectedCity); // Use Proxy method
+        // Fetch areas (from cities API) for the selected city (state)
+        const response = await fetch(`https://www.universal-tutorial.com/api/cities/${selectedCity}`, {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiIyMHA2MDIyQGVuZy5hc3UuZWR1LmVnIiwiYXBpX3Rva2VuIjoiWlpGVXZWdlV4WlVEVWd2SWdINVZOSGNOVXY5STdHa2NUTWhoVndaQkp0TExiUVBYS0xIcG9LckRRejExM1BmSnJrRSJ9LCJleHAiOjE3MzcwMDIxMDh9.psK5D96hgISDXgRSUEgRB6KoaukwkqmfOhsXp8acCPQ", // Replace with your actual token
+                'Accept': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Area API returned status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const areas = data; // The response returns areas directly
+
+        // Populate the area dropdown
         areaDropdown.innerHTML = '<option value="">Select Area</option>';
         areas.forEach(area => {
             const option = document.createElement('option');
-            option.value = area.city_name;
+            option.value = area.city_name; // Use the correct field from API response
             option.textContent = area.city_name;
             areaDropdown.appendChild(option);
         });
@@ -705,6 +841,7 @@ async function handleCityChange(cityDropdown, areaDropdown) {
 }
 
 document.addEventListener('DOMContentLoaded', fetchCountries);
+
     function addEmergencyContact($Name, $Phone, $VolunteerID) {
         console.log('Adding emergency contact...');
         console.log('Name:', $Name);

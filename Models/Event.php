@@ -190,22 +190,22 @@ class Event
     }
 
     public function get_eventFeedbacks()
-    {
-        // query the event feedback table by the event id to get the event feedbacks objects
-        $query = "SELECT * FROM EventFeedback WHERE EventID = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $this->EventID);
-        $stmt->execute();
+{
+    $query = "SELECT * FROM EventFeedback WHERE EventID = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("i", $this->EventID);
+    $stmt->execute();
 
-        $result = $stmt->get_result();
-        $eventFeedbacks = [];
-        while ($row = $result->fetch_assoc()) {
-            $eventFeedback = new EventFeedback();
-            $eventFeedback->setFeedbackID($row['FeedbackID']);
-            $eventFeedback = $eventFeedback->read_by_id($row['FeedbackID']);
-            $eventFeedbacks[] = $eventFeedback;
-        }
+    $result = $stmt->get_result();
+    $eventFeedbacks = [];
+    while ($row = $result->fetch_assoc()) {
+        $eventFeedback = new EventFeedback();
+        $eventFeedback->setFeedbackID($row['FeedbackID']);
+        $eventFeedback = $eventFeedback->read_by_id($row['FeedbackID']);
+        $eventFeedbacks[] = $eventFeedback;
     }
+    return $eventFeedbacks;
+}
 
     public function update($EventName, $EventDate, $EventLocation, $EventDescription, $OrganizationName, $EventID)
     {
