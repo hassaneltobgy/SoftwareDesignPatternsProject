@@ -1,10 +1,104 @@
+
+
+<?php
+require_once 'C:/Users/HP/Downloads/SPD/Controllers/OrganizationController.php';
+require_once 'C:\Users\HP\Downloads\SPD\Controllers\EventController.php';
+require_once 'C:\Users\HP\Downloads\SPD\Controllers\LocationController.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$OrganizationID = $_SESSION['OrganizationID'] ?? null; // Use OrganizationID from session
+$organizationController = new OrganizationController();
+
+if ($OrganizationID) {
+    // Fetch events for the logged-in organization by ID
+    $events = $organizationController->get_events_for_organization($OrganizationID);
+} else {
+    echo "Organization ID is not set. Please log in again.";
+}
+
+
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $locationController = new LocationController();
+    $eventController = new EventController();
+
+    // Step 1: Retrieve form data
+    $data = [
+        'EventName' => $_POST['EventName'] ?? '',
+        'EventDate' => $_POST['EventDate'] ?? '',
+        'EventDescription' => $_POST['EventDescription'] ?? '',
+        'EventLocation' => $_POST['EventLocation'] ?? '',
+        'EventLocationID' => $_POST['EventLocationID'] ?? '',
+        'OrganizationName' => 'YourOrganizationName', // Replace with actual logic to fetch the organization name
+    ];
+
+    // Step 2: Validate the data
+    if (!empty($data['EventName']) && !empty($data['EventDate']) && !empty($data['EventDescription']) && !empty($data['EventLocation'])) {
+        // Handle location using LocationController
+        $location = $locationController->create_location($data['EventLocation']);
+        if ($location) {
+            // Set the AddressID for the event
+            $data['EventLocationID'] = $location->AddressID;
+
+            // Add the event using EventController
+            $success = $eventController->add_event($data);
+
+            if ($success) {
+                echo "<p>Event added successfully!</p>";
+            } else {
+                echo "<p>Failed to add event. Please try again.</p>";
+            }
+        } else {
+            echo "<p>Failed to process the location. Please check the location details.</p>";
+        }
+    } else {
+        echo "<p>All fields are required.</p>";
+    }
+
+
+}
+// Instantiate the controller to fetch events
+$eventController = new EventController();
+// $events = $eventController->get_all_events();
+
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+//     $data = [
+//         'EventName' => $_POST['EventName'] ?? '',
+//         'EventDate' => $_POST['EventDate'] ?? '',
+//         'EventLocation' => $_POST['EventLocation'] ?? '',
+//         'EventDescription' => $_POST['EventDescription'] ?? '',
+//         'OrganizationName' => 'YourOrganizationName' // Replace with actual logic to fetch organization name
+//     ];
+
+//     // Validate the data
+//     if (!empty($data['EventName']) && !empty($data['EventDate']) && !empty($data['EventLocation']) && !empty($data['EventDescription'])) {
+//         $eventController = new EventController();
+//         $success = $eventController->add_event($data);
+
+//         if ($success) {
+//             echo "<p>Event added successfully!</p>";
+//         } else {
+//             echo "<p>Failed to add event. Please try again.</p>";
+//         }
+//     } else {
+//         echo "<p>All fields are required.</p>";
+//     }
+// }
+
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Organization Dashboard</title>
     <style>
-        body {
+   body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #eef2f7;
@@ -104,16 +198,58 @@
             background-color: #2a3d4d;
             color: white;
         }
+        .add-event-btn {
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            background-color: #2a3d4d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .add-event-btn:hover {
+            background-color: #22303d;
+        }
+        .add-event-form {
+            display: none;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .add-event-form input, .add-event-form textarea {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .add-event-form button {
+            background-color: #2a3d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .add-event-form button:hover {
+            background-color: #22303d;
+        }
     </style>
     <script>
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const content = document.querySelector('.content');
             const externalButton = document.getElementById('external-toggle');
-            
+
             sidebar.classList.toggle('visible');
             content.classList.toggle('shifted');
             externalButton.style.display = sidebar.classList.contains('visible') ? 'none' : 'block';
+        }
+
+        function toggleAddEventForm() {
+            const form = document.querySelector('.add-event-form');
+            form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
         }
     </script>
 </head>
@@ -129,50 +265,74 @@
         <a href="events.php">Events</a>
         <a href="reports.php">Reports</a>
         <a href="messages.php">Messages</a>
-        <!-- <a href="profile.php">Profile</a> -->
         <a href="EventManagement.php">Event Management</a>
-
     </div>
 
     <!-- Header -->
     <header>
         <h1>Welcome, Organization!</h1>
         <nav>
-            <a href="logout.php">Logout</a>
+            <a href="LoginView.php">Logout</a>
         </nav>
     </header>
 
     <!-- Content -->
     <div class="content">
-        <main>
-            <h1>Organization Dashboard</h1>
-            <p>Here you can manage events, view reports, and communicate with volunteers.</p>
+        <div class="dummy-data">
+            <h2>Upcoming Events</h2>
+        
+            <button class="add-event-btn" onclick="toggleAddEventForm()">Add Event</button>
 
-            <div class="dummy-data">
-                <h2>Upcoming Events</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Event ID</th>
-                            <th>Event Name</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>101</td>
-                            <td>Community Clean-Up</td>
-                            <td>11th Nov 2024</td>
-                        </tr>
-                        <tr>
-                            <td>102</td>
-                            <td>Food Drive</td>
-                            <td>15th Nov 2024</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </main>
+            <!-- Add Event Form -->
+            <form class="add-event-form" action="organizationView.php" method="POST">
+    <label for="EventName">Event Name:</label><br>
+    <input type="text" id="EventName" name="EventName" required><br>
+
+    <label for="EventDate">Event Date:</label><br>
+    <input type="date" id="EventDate" name="EventDate" required><br>
+
+    <label for="EventDescription">Event Description:</label><br>
+    <textarea id="EventDescription" name="EventDescription" rows="4" required></textarea><br>
+
+    <label for="EventLocation">Event Location:</label><br>
+    <input type="text" id="EventLocation" name="EventLocation" required><br>
+
+    <button type="submit">Save Event</button>
+</form>
+
+
+            <!-- Event Table -->
+            <table>
+    <thead>
+        <tr>
+            <th>Event ID</th>
+            <th>Event Name</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Location</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (!empty($events)): ?>
+            <?php foreach ($events as $event): ?>
+    <tr>
+        <td><?php echo htmlspecialchars($event->EventID); ?></td>
+        <td><?php echo htmlspecialchars($event->EventName); ?></td>
+        <td><?php echo htmlspecialchars($event->EventDate); ?></td>
+        <td><?php echo htmlspecialchars($event->EventDescription); ?></td>
+        <td><?php echo htmlspecialchars($event->EventLocation->Name); ?></td>
+    </tr>
+<?php endforeach; ?>
+
+        <?php else: ?>
+            <tr>
+                <td colspan="5">No upcoming events found.</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
+        </div>
     </div>
 </body>
 </html>
