@@ -14,9 +14,9 @@ class VolunteerController {
     public function __construct() {
         $this->VolunteerModel = new Volunteer();
     }
-
+   
 public function getVolunteerNotifications($UserID){
-    // echo "UserID is in getVolunteerNotifications $UserID";
+    echo "UserID is in getVolunteerNotifications $UserID";
     $user = new User($UserID);
     $notifications =  $user->getAllNotifications();
     return $notifications;
@@ -27,7 +27,7 @@ public function getVolunteerNotifications($UserID){
  
 
     public function getVolunteerbyId($id) {
-        // echo "getting volunteer by id in controller $id"; 
+        echo "getting volunteer by id in controller $id"; 
         return Volunteer::get_volunteer_by_id($id);
     }
 
@@ -191,6 +191,9 @@ public function getVolunteerNotifications($UserID){
     public function get_all_notification_types(){
         return NotificationType::get_all();
     }
+    // Events 
+
+    
 
     public function updateNotificationSettings($UserID, $notificationTypes) {
         echo "NotificationTypes in controller are " . $notificationTypes;

@@ -56,6 +56,7 @@ class EmailService {
             )
         );
     }
+    //
 
     public function sendEmail($to, $subject, $body) {
         try {
