@@ -96,18 +96,18 @@
         const url = message.match(/url is (.*)/)[1];
         window.location.href = url ;
     } 
-    else if (message.includes("admin")) {
+    else if (message.includes("admin") || message.includes("Admin")) {
 
         alert(message);
         const email = message.match(/Email is (.*)/)[1];
         window.location.href = "../Views/AdminControlPanel.php?message=" + message;
-    } else if (message.includes("organization")) {
+    } else if (message.includes("organization") || message.includes("Organization")) {
 
         alert(message);
         const email = message.match(/Email is (.*)/)[1];
         window.location.href = "../Views/OrganizationMainScreen.php?message=" + message;
     } 
-    else if (message.includes("volunteer")) {
+    else if (message.includes("volunteer") || message.includes("Volunteer")) {
         alert(message);
         const email = message.match(/Email is (.*)/)[1];
         window.location.href = "../Views/VolunteerProfileView.php?message=" + message + "&email=" + email;

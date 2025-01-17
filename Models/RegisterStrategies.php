@@ -183,11 +183,11 @@ class RegisterMethodContext
 
             $user->add_notification_type($notificationId);
 
-            $userRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
-            $smsObserver = new NotifyByEmailObserver($userRegisteredNotificationService);
-            $userRegisteredNotificationService->notify();
+            // $userRegisteredNotificationService = new UserRegisteredNotificationService([$user]);
+            // $smsObserver = new NotifyByEmailObserver($userRegisteredNotificationService);
+            // $userRegisteredNotificationService->notify();
         }
-
-        return $message;
+        // concatenate Email to the message
+        return $message . " Email is $email";
     }
 }

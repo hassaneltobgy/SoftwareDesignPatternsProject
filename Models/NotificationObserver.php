@@ -87,11 +87,11 @@ class NotifyByInAppObserver implements IObserver {
 
 }
 
-
-class NotificationService implements ISubject {
+abstract class NotificationServiceTemplate implements ISubject {
     protected $observers = [];
     protected $Users = [];
     private $conn;
+
     public function __construct($Users) {
         $this->Users = $Users;
         $this->conn = Database::getInstance()->getConnection();
@@ -101,113 +101,120 @@ class NotificationService implements ISubject {
         $this->observers[] = $observer;
     }
 
+    // Template method
     public function notify() {
+        $message = $this->createMessage();
+        $recipients = $this->determineRecipients();
+
         foreach ($this->observers as $observer) {
-            $observer->sendNotification();
+            $observer->sendNotification($message, $recipients);
         }
     }
+
+    // Abstract methods for customization in subclasses
+    abstract protected function createMessage();
+    abstract protected function determineRecipients();
+
     public function createSubject($name, $description) {
         $stmt = $this->conn->prepare("INSERT INTO Subjects (name, description) VALUES (?, ?)");
         $stmt->bind_param("ss", $name, $description);
         $stmt->execute();
-        $subjectId = $stmt->insert_id; 
+        $subjectId = $stmt->insert_id;
         $stmt->close();
 
         return $subjectId;
     }
+
     public function updateSubject($subjectId, $name, $description) {
         $stmt = $this->conn->prepare("UPDATE Subjects SET name = ?, description = ? WHERE id = ?");
         $stmt->bind_param("ssi", $name, $description, $subjectId);
         $stmt->execute();
         $stmt->close();
     }
+
     public function deleteSubject($subjectId) {
         $stmt = $this->conn->prepare("DELETE FROM Subjects WHERE id = ?");
         $stmt->bind_param("i", $subjectId);
         $stmt->execute();
         $stmt->close();
     }
-
-
-
 }
 
-class ApplicationSubmittedNotificationService extends NotificationService {
-    public function __construct($Users) {
-        parent::__construct($Users);
-        
-    }
-    public function notify() {
-        $Msg = "Application Submitted Successfully, 
-        Your Application is under review, we will notify you once it is approved.
-        ";
-        foreach ($this->observers as $observer) {
-            //users here is a list of volunteers 
-            $observer->sendNotification($Msg, $this->Users);
-        }
-    }
-}
-class UserRegisteredNotificationService extends NotificationService {
-    public function __construct($Users) {
-        parent::__construct($Users);
-    }
-    public function notify() {
-        $Msg = "Welcome to our platform, you have successfully registered your account.";
-        foreach ($this->observers as $observer) {
-            // users here is a list of volunteers 
-            $observer->sendNotification($Msg, $this->Users);
-        }
+class ApplicationSubmittedNotificationService extends NotificationServiceTemplate {
+    protected function createMessage() {
+        return "Application Submitted Successfully, \nYour Application is under review, we will notify you once it is approved.";
     }
 
+    protected function determineRecipients() {
+        return $this->Users;
+    }
 }
-class ApplicationAcceptedNotificationService extends NotificationService {
+
+class UserRegisteredNotificationService extends NotificationServiceTemplate {
+    protected function createMessage() {
+        return "Welcome to our platform, you have successfully registered your account.";
+    }
+
+    protected function determineRecipients() {
+        return $this->Users;
+    }
+}
+
+class ApplicationAcceptedNotificationService extends NotificationServiceTemplate {
     private $OrganizationName;
     private $EventName;
+
     public function __construct($Users, $OrganizationName, $EventName) {
         $this->OrganizationName = $OrganizationName;
         $this->EventName = $EventName;
         parent::__construct($Users);
     }
-    public function notify() {
-        $Msg = "Congratulations, your application for $this->EventName organized by $this->OrganizationName has been accepted.";
-        foreach ($this->observers as $observer) {
-            // users here is a list of volunteers
-            $observer->sendNotification($Msg, $this->Users);
-        }
-    }
-}
-    class ApplicationSubmittedfromVolunteerNotificationService extends NotificationService {
-        private $volunteerid;
-        public function __construct($volunteerid, $Users) {
-            $this->volunteerid = $volunteerid;
-            parent::__construct($Users);
-        }
-        public function notify() {
-            $Msg = "A new Application has been submitted by a volunteer with id $this->volunteerid, please review it.";
-            foreach ($this->observers as $observer) {
-                //users here is a list of only one organization
-                $observer->sendNotification($Msg, $this->Users);
-            }
-        }
+
+    protected function createMessage() {
+        return "Congratulations, your application for $this->EventName organized by $this->OrganizationName has been accepted.";
     }
 
-    class EventCreatedNotificationService extends NotificationService {
-        private $OrganizationName;
-        private $EventName;
-        public function __construct($Users, $OrganizationName, $EventName) {
-            $this->OrganizationName = $OrganizationName;
-            $this->EventName = $EventName;
-            parent::__construct($Users);
-        }
-        public function notify() {
-            $Msg = "An event $this->EventName has been created by $this->OrganizationName.";
-            foreach ($this->observers as $observer) {
-                //users here is a list of all volunteers
-              $Volunteers = Volunteer::getAllVolunteers();
-                $observer->sendNotification($Msg, $Volunteers);
-            }
-        }
+    protected function determineRecipients() {
+        return $this->Users;
     }
+}
+
+class ApplicationSubmittedFromVolunteerNotificationService extends NotificationServiceTemplate {
+    private $volunteerId;
+
+    public function __construct($volunteerId, $Users) {
+        $this->volunteerId = $volunteerId;
+        parent::__construct($Users);
+    }
+
+    protected function createMessage() {
+        return "A new Application has been submitted by a volunteer with ID $this->volunteerId, please review it.";
+    }
+
+    protected function determineRecipients() {
+        return $this->Users;
+    }
+}
+
+class EventCreatedNotificationService extends NotificationServiceTemplate {
+    private $OrganizationName;
+    private $EventName;
+
+    public function __construct($Users, $OrganizationName, $EventName) {
+        $this->OrganizationName = $OrganizationName;
+        $this->EventName = $EventName;
+        parent::__construct($Users);
+    }
+
+    protected function createMessage() {
+        return "An event $this->EventName has been created by $this->OrganizationName.";
+    }
+
+    protected function determineRecipients() {
+        return Volunteer::getAllVolunteers();
+    }
+}
+
 
 
 
