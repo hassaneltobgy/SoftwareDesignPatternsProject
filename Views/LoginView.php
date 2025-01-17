@@ -94,7 +94,7 @@
 
     if (message.includes("Google")) {
         const url = message.match(/url is (.*)/)[1];
-        window.location.href = url ;
+        window.location.href = url;
     } 
     else if (message.includes("admin") || message.includes("Admin")) {
 

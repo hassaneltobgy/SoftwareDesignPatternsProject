@@ -1,0 +1,9 @@
+{
+    "require": {
+        "phpmailer/phpmailer": "^6.9",
+        "twilio/sdk": "^8.3",
+        "infobip/infobip-api-php-client": "^5.1",
+        "pear/http_request2": "^2.6",
+        "google/apiclient": "^2.18"
+    }
+}

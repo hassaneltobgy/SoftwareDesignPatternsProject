@@ -7,6 +7,9 @@ require_once 'Event.php';
 require_once 'SkillsModel.php';
 require_once 'ImageProxy.php';
 require_once 'BadgeFactory.php';
+require_once 'AddSkill.php';
+require_once 'ISkillCommand.php';
+require_once 'RemoveSkill.php';
 class Volunteer extends User {
     public $VolunteerID;   
     public $UserID; 
@@ -19,6 +22,8 @@ class Volunteer extends User {
     private $conn;
     private $ProxyImage;
     private $table_name = "Volunteer";
+    private $ISkillCommand;
+
 
     public function __construct($id = null) {
         $this->table_name = "Volunteer";
@@ -545,30 +550,38 @@ class Volunteer extends User {
         return $Result;
     }
 
-    public function add_skill($skill) {
-        // this function takes a skill object as input
-        $skill_id = $skill->SkillID;
-        $skill_name = $skill->SkillName;
-        $SkillLevel = $skill->SkillLevel;
-        $SkillTypes = $skill->SkillTypes;
+    // public function add_skill($skill) {
+    //     // this function takes a skill object as input
+    //     $skill_id = $skill->SkillID;
+    //     $skill_name = $skill->SkillName;
+    //     $SkillLevel = $skill->SkillLevel;
+    //     $SkillTypes = $skill->SkillTypes;
 
-            $skill= Skill::create($skill_name, $SkillLevel, $SkillTypes);
+    //         $skill= Skill::create($skill_name, $SkillLevel, $SkillTypes);
         
        
-            $skill_id = $skill->SkillID;
+    //         $skill_id = $skill->SkillID;
     
-            // Insert the SkillID into the VolunteerSkills table
-            $query = "INSERT INTO Volunteer_Skills (VolunteerID, SkillID) VALUES (?, ?)";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("ii", $this->VolunteerID, $skill_id);
+    //         // Insert the SkillID into the VolunteerSkills table
+    //         $query = "INSERT INTO Volunteer_Skills (VolunteerID, SkillID) VALUES (?, ?)";
+    //         $stmt = $this->conn->prepare($query);
+    //         $stmt->bind_param("ii", $this->VolunteerID, $skill_id);
             
-            if ($stmt->execute()) {
-                return true;
-            }
+    //         if ($stmt->execute()) {
+    //             return true;
+    //         }
         
-        return false;
-    }
+    //     return false;
+    // }
     
+    public function add_skill($skill)
+    {
+        // Assuming ISkillCommand is a class property
+       $this->ISkillCommand = new AddSkill();
+     // Create a new instance of AddSkill
+        echo "volunteer id in add skill is $this->VolunteerID";
+        $this->ISkillCommand->DO($skill,$this->VolunteerID); // Call the method, renamed to follow PHP conventions
+    }
 
     public function get_skills() {
         // SQL query to fetch all skills associated with the volunteer
@@ -618,6 +631,15 @@ class Volunteer extends User {
         
         return false;
     }
+
+    // public function remove_skill($skillID)
+    // {
+    //     // Assuming ISkillCommand is a class property
+    //    $this->ISkillCommand = new RemoveSkill();
+    //  // Create a new instance of AddSkill
+    //     echo "volunteer id in add skill is $this->VolunteerID";
+    //     $this->ISkillCommand->DO($skillID,$this->VolunteerID); // Call the method, renamed to follow PHP conventions
+    // }
     
 
     public function modify_skill($old_skill_name, $new_skill_name) {

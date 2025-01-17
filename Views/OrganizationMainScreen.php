@@ -51,7 +51,7 @@
             echo isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'No message available.'; 
             ?>
         </p>
-        <button onclick="window.location.href='OrganizationView.php';">Back to Home</button>
+        <button onclick="window.location.href='index.php';">Back to Home</button>
     </div>
 </body>
 </html>
