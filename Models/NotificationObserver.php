@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once 'Database.php';
 require_once 'NotificationModel.php';
 require_once '../Models/NotificationSender.php';
@@ -211,4 +211,4 @@ class ApplicationAcceptedNotificationService extends NotificationService {
 
 
 
-
+?>

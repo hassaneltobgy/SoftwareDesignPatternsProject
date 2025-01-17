@@ -70,7 +70,70 @@ class Organization extends User
     {
         $this->OrganizationID = $OrganizationID;
     }
+    public static function GetOrganizationIDByEmail($email)
+{
+    $conn = Database::getInstance()->getConnection();
+    
+    $query = "SELECT OrganizationID FROM Organization WHERE OrganizationEmail = ?";
+    $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        echo "Error preparing query: " . $conn->error;
+        return null;
+    }
+    echo "email before trimming $email";
+    // $email = trim(strtolower($email)); // Normalize email
+    echo "Executing query with emailll:::: $email<br>";
+    $stmt->bind_param("s", $email);
+    
+    if (!$stmt->execute()) {
+        echo "Error executing query: " . $stmt->error;
+        return null;
+    }
+    
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    
+    if (!$row) {
+        echo "No organization found with the email: $email<br>";
+        return null;
+    }
+    
+    echo "Organization ID found: " . $row['OrganizationID'] . "<br>";
 
+    return $row['OrganizationID'];
+}
+
+    
+
+    public static function GetOrganizedEvents($OrganizationID)
+{
+    $conn = Database::getInstance()->getConnection();
+
+    $query = "
+        SELECT e.EventID, e.EventName, e.EventDate, e.EventDescription
+        FROM Event e
+        INNER JOIN Organization_Event oe ON e.EventID = oe.EventID
+        WHERE oe.OrganizationID = ?
+    ";
+
+    $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        echo "Error preparing query: " . $conn->error;
+        return [];
+    }
+
+    $stmt->bind_param("i", $OrganizationID); // Use organization ID
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $events = [];
+    while ($row = $result->fetch_assoc()) {
+        $events[] = $row;
+    }
+
+    $stmt->close();
+    return $events;
+}
     public function AcceptApplications($applicationIDs){
         $conn = Database::getInstance()->getConnection();
         for ($i = 0; $i < count($applicationIDs); $i++) {

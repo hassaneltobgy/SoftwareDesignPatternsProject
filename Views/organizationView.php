@@ -1,19 +1,46 @@
 
 
 <?php
-require_once 'C:/Users/HP/Downloads/SPD/Controllers/OrganizationController.php';
-require_once 'C:\Users\HP\Downloads\SPD\Controllers\EventController.php';
-require_once 'C:\Users\HP\Downloads\SPD\Controllers\LocationController.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Controllers\OrganizationController.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Controllers\EventController.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Controllers\LocationController.php';
 
-$OrganizationID = $_SESSION['OrganizationID'] ?? null; // Use OrganizationID from session
+
+echo isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'No message available.'; 
+
+$email = $_GET['email'] ?? null; // Use OrganizationID from session
 $organizationController = new OrganizationController();
+echo "email from view issss $email";
+if ($email) {
+    // Fetch OrganizationID using email
+    $organizationID = $organizationController->get_organization_id_by_email($email);
+    echo "Organization Id $organizationID";
 
-if ($OrganizationID) {
+    if ($organizationID) {
+        // Fetch events for the organization using its ID
+        $events = $organizationController->get_events_for_organization($organizationID);
+
+        // Display a message including the email and ID
+        echo "Welcome, organization with email: " . htmlspecialchars($email) . " (ID: " . htmlspecialchars($organizationID) . ")<br>";
+
+        // Display the events
+        if (!empty($events)) {
+            echo "Here are your events:<br>";
+            foreach ($events as $event) {
+                // echo "Event: " . htmlspecialchars($event['EventName']) . ", Date: " . htmlspecialchars($event['EventDate']) . "<br>";
+            }
+        } else {
+            echo "No events found.";
+        }
+    } else {
+        echo "No organization found with the provided email.";
+    }
+} else {
+    echo "Organization email is not set. Please log in again.";
+}
+if ($organizationID) {
     // Fetch events for the logged-in organization by ID
-    $events = $organizationController->get_events_for_organization($OrganizationID);
+    $events = $organizationController->get_events_for_organization($organizationID);
 } else {
     echo "Organization ID is not set. Please log in again.";
 }
@@ -32,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'EventDescription' => $_POST['EventDescription'] ?? '',
         'EventLocation' => $_POST['EventLocation'] ?? '',
         'EventLocationID' => $_POST['EventLocationID'] ?? '',
-        'OrganizationName' => 'YourOrganizationName', // Replace with actual logic to fetch the organization name
+        'OrganizationID' => $_POST['organizationID'] , // Replace with actual logic to fetch the organization name
     ];
 
     // Step 2: Validate the data
@@ -45,8 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Add the event using EventController
             $success = $eventController->add_event($data);
-
-            if ($success) {
+            $associationSuccess = $organizationController->associate_event_with_organization($data);
+            if ($success && $associationSuccess) {
                 echo "<p>Event added successfully!</p>";
             } else {
                 echo "<p>Failed to add event. Please try again.</p>";
@@ -309,18 +336,21 @@ $eventController = new EventController();
             <th>Event Name</th>
             <th>Date</th>
             <th>Description</th>
-            <th>Location</th>
+          
         </tr>
     </thead>
     <tbody>
         <?php if (!empty($events)): ?>
             <?php foreach ($events as $event): ?>
     <tr>
-        <td><?php echo htmlspecialchars($event->EventID); ?></td>
-        <td><?php echo htmlspecialchars($event->EventName); ?></td>
-        <td><?php echo htmlspecialchars($event->EventDate); ?></td>
-        <td><?php echo htmlspecialchars($event->EventDescription); ?></td>
-        <td><?php echo htmlspecialchars($event->EventLocation->Name); ?></td>
+    <td><?php echo htmlspecialchars($event['EventID']); ?></td>
+<td><?php echo htmlspecialchars($event['EventName']); ?></td>
+<td><?php echo htmlspecialchars($event['EventDate']); ?></td>
+<td><?php echo htmlspecialchars($event['EventDescription']); ?></td>
+
+
+
+        
     </tr>
 <?php endforeach; ?>
 

@@ -105,7 +105,7 @@
 
         alert(message);
         const email = message.match(/Email is (.*)/)[1];
-        window.location.href = "../Views/OrganizationMainScreen.php?message=" + message;
+        window.location.href = "../Views/organizationView.php?email=" + email;
     } 
     else if (message.includes("volunteer")) {
         alert(message);

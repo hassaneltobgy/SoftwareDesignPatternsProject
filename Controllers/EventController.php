@@ -1,8 +1,8 @@
 <?php
-require_once 'C:\Users\HP\Downloads\SPD\Models\Event.php';
-require_once 'C:\Users\HP\Downloads\SPD\Models\LocationModel.php';
-require_once 'C:\Users\HP\Downloads\SPD\Models\OrganizationModel.php';
-require_once 'C:\Users\HP\Downloads\SPD\Controllers\LocationController.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\Event.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\LocationModel.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\OrganizationModel.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Controllers\LocationController.php';
 class EventController {
     private $eventModel;
 
@@ -56,17 +56,17 @@ class EventController {
     }
  
     //assign to org
-    public static function createAndAssociateEvent($organizationName, $Data) {
-        // Create the event
+    // public static function createAndAssociateEvent($organizationName, $Data) {
+    //     // Create the event
       
-        if ($event) {
-            $eventID = $event->getEventID()();
-            // Associate the event with the organization
-            return OrganizationModel::addEvent($organizationName, $eventID);
-        }
+    //     if ($event) {
+    //         $eventID = $event->getEventID()();
+    //         // Associate the event with the organization
+    //         return OrganizationModel::addEvent($organizationName, $eventID);
+    //     }
     
-        return false;
-    }
+    //     return false;
+    // }
     
     
     

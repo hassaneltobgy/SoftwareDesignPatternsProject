@@ -1,12 +1,7 @@
 <?php
 
-
-
-
-
-
-require_once 'C:\Users\HP\Downloads\SPD\Controllers\EventController.php';
-require_once 'C:\Users\HP\Downloads\SPD\Controllers\LocationController.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Controllers\EventController.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Controllers\LocationController.php';
 //loc
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $locationController = new LocationController();

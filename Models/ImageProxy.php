@@ -1,5 +1,5 @@
-<?php
-
+ <?php
+require 'C:/Users/HP/Downloads/SDPPROJECT/vendor/autoload.php';
 interface IImage {
     public function display();
 }
@@ -87,4 +87,4 @@ class ProxyImage implements IImage {
 }
 
 
-?>
+?> -->

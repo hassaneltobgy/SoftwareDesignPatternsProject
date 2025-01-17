@@ -1,7 +1,7 @@
 <?php
 // session_start();
+require "C:/Users/HP/Downloads/SDPPROJECT/vendor/autoload.php";
 
-require "../vendor/autoload.php";
 interface LoginMethodStrategy
 {
     public function login(String $email, String $password);
@@ -79,6 +79,7 @@ class LoginMethodEmail implements LoginMethodStrategy
         // If the user exists, verify the password using password_verify
         if ($user && password_verify($password, $user->PASSWORD_HASH)) {
             // $_SESSION['email'] = $email; // Store user email
+            echo "successfully logged in with Email as a $userType Email is $email";
             return "successfully logged in with Email as a $userType Email is $email"; // Login successful
         }
         echo "password is incorrect";

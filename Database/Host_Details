@@ -1,0 +1,7 @@
+CREATE TABLE HostDetails (
+    HostDetailID INT PRIMARY KEY AUTO_INCREMENT,
+    OrganizationID INT,
+    EventID INT,
+    FOREIGN KEY (OrganizationID) REFERENCES Organization(OrganizationID),
+    FOREIGN KEY (EventID) REFERENCES Event(EventID)
+);

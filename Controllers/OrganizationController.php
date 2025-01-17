@@ -1,121 +1,46 @@
 <?php
-require_once 'C:\Users\HP\Downloads\Phase1\Models\OrganizataionModel.php'; 
-class OrganizationController {
-    private $organizationModel;
+session_start();
+require_once "C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\Database.php";
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\OrganizationModel.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\Event.php';
 
-    public function __construct() {
-        $this->organizationModel = new Organization();
+class OrganizationController
+{
+    public function get_events_for_organization($OrganizationID)
+    {
+        return Organization::GetOrganizedEvents($OrganizationID); // Pass organization ID
+    }
+    public function get_organization_id_by_email($email) {
+        // Use the Organization model to fetch the OrganizationID by email
+        return Organization::GetOrganizationIDByEmail($email);
     }
 
-    // Get all organizations and pass them to the view
-    public function getAllOrganizations() {
-        // Use direct database logic if not available in the model
-        $db = Database::getInstance()->getConnection();
-        $query = "SELECT * FROM Organization";
-        $stmt = $db->prepare($query);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $organizations = [];
-        while ($row = $result->fetch_assoc()) {
-            $organizations[] = $row;
+    public function associate_event_with_organization($data)
+    {
+        echo "Associating event with organization...\n";
+    
+        // Step 1: Get EventID
+        $eventName = $data["EventName"];
+        if (!$eventName) {
+            echo "Event not found.\n";
+            return false;
         }
 
-        return $organizations;
+
+        $eventModel = new Event(); // Create an instance of the Event class
+$eventId = $eventModel->getEventIdByName($eventName); // Call the method
+
+        // Step 2: Get the OrganizationID using OrganizationModel
+    $organizationID = $data['OrganizationID'] ?? null;
+    if (!$organizationID) {
+        echo "Organization name is missing.\n";
+        return false;
     }
-
-    // Create a new organization
-    public function createOrganization($data) {
-        // Collect form data for organization creation
-        $OrganizationName = $data['OrganizationName'];
-        $OrganizationDescription = $data['OrganizationDescription'];
-        $OrganizationEmail = $data['OrganizationEmail'];
-        $OrganizationPhone = $data['OrganizationPhone'];
-        $OrganizationAddressID = $data['OrganizationAddressID'];
-        $OrganizationTypeID = $data['OrganizationTypeID'];
-        $OrganizationWebsite = $data['OrganizationWebsite'];
-
-        $organization = Organization::create_Organization(
-            $OrganizationName,
-            $OrganizationDescription,
-            $OrganizationEmail,
-            $OrganizationPhone,
-            $OrganizationAddressID,
-            $OrganizationTypeID,
-            $OrganizationWebsite
-        );
-
-        return $organization;
-    }
-
-    // Update an existing organization
-    public function updateOrganization($id, $data) {
-        $organization = new Organization($id);
-        $organization->OrganizationName = $data['OrganizationName'];
-        $organization->OrganizationDescription = $data['OrganizationDescription'];
-        $organization->OrganizationEmail = $data['OrganizationEmail'];
-        $organization->OrganizationPhone = $data['OrganizationPhone'];
-        $organization->OrganizationAddressID = $data['OrganizationAddressID'];
-        $organization->OrganizationTypeID = $data['OrganizationTypeID'];
-        $organization->OrganizationWebsite = $data['OrganizationWebsite'];
-
-        return $organization->update();
-    }
-
-    // Delete an organization by ID
-    public function deleteOrganization($id) {
-        $organization = new Organization($id);
-        return $organization->delete();
-    }
-
-    // Get organization by ID
-    public function getOrganizationById($id) {
-        // Fetch a single organization using a database query
-        $db = Database::getInstance()->getConnection();
-        $query = "SELECT * FROM Organization WHERE OrganizationID = ?";
-        $stmt = $db->prepare($query);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+    $organizationName = Organization::getOrganizationNameByID($organizationID);
+        // Step 2: Use the OrganizationModel to associate the event
+        Organization::addEvent($organizationName, $eventId);
+        return true;
     }
 }
 
-// Handle POST actions outside the class
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $organizationController = new OrganizationController();
-    switch ($_POST['action']) {
-        case 'addOrganization':
-            $data = [
-                'OrganizationName' => $_POST['OrganizationName'],
-                'OrganizationDescription' => $_POST['OrganizationDescription'],
-                'OrganizationEmail' => $_POST['OrganizationEmail'],
-                'OrganizationPhone' => $_POST['OrganizationPhone'],
-                'OrganizationAddressID' => $_POST['OrganizationAddressID'],
-                'OrganizationTypeID' => $_POST['OrganizationTypeID'],
-                'OrganizationWebsite' => $_POST['OrganizationWebsite']
-            ];
-            $organizationController->createOrganization($data);
-            break;
-
-        case 'updateOrganization':
-            $id = $_POST['OrganizationID'];
-            $data = [
-                'OrganizationName' => $_POST['OrganizationName'],
-                'OrganizationDescription' => $_POST['OrganizationDescription'],
-                'OrganizationEmail' => $_POST['OrganizationEmail'],
-                'OrganizationPhone' => $_POST['OrganizationPhone'],
-                'OrganizationAddressID' => $_POST['OrganizationAddressID'],
-                'OrganizationTypeID' => $_POST['OrganizationTypeID'],
-                'OrganizationWebsite' => $_POST['OrganizationWebsite']
-            ];
-            $organizationController->updateOrganization($id, $data);
-            break;
-
-        case 'deleteOrganization':
-            $id = $_POST['OrganizationID'];
-            $organizationController->deleteOrganization($id);
-            break;
-    }
-}
 ?>

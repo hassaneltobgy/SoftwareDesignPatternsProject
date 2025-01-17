@@ -5,7 +5,7 @@ class Database {
 
 
     public function __construct() {
-        $this->conn = new mysqli('localhost', 'root', 'Deda2782002!', 'VolunteerManagementSystem');
+        $this->conn = new mysqli('localhost', 'root', '1234', 'VolunteerManagementSystem');
 
         if ($this->conn->connect_error) {
             die("Connection failed: " . $this->conn->connect_error);

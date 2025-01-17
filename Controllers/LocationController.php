@@ -1,5 +1,5 @@
 <?php
-require_once '../Models/LocationModel.php';
+require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\LocationModel.php';
 
 class LocationController
 {
@@ -49,7 +49,7 @@ class LocationController
     // }
     public function create_location($Name, $ParentID = null)
 {
-    require_once 'C:\Users\HP\Downloads\SPD\Models\LocationModel.php';
+    require_once 'C:\Users\HP\Downloads\SDPPROJECT\SoftwareDesignPatternsProject\Models\LocationModel.php';
     return Location::create(null, $Name, $ParentID);
 }
 

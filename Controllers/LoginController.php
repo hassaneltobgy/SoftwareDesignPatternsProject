@@ -138,4 +138,3 @@ $controller->handleRequest();
 echo "$controller->Message";
 require_once '../Views/LoginView.php';
 ?>
-
