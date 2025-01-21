@@ -18,8 +18,8 @@ class UserController {
     
     public function updateUser($data) {
 
-        echo "now updating user with id: $data[UserID]"; 
-        echo "UserType: $data[UserType]";      
+        //echo "now updating user with id: $data[UserID]"; 
+        //echo "UserType: $data[UserType]";      
         if (strtolower($data['UserType']) == 'volunteer') {
             $volunteer = new Volunteer();
 
@@ -73,7 +73,7 @@ class UserController {
     // Delete a User by ID
     public function deleteUser($id) {
         $User = new User($id);
-        echo "now deleting user with id: $id";
+        //echo "now deleting user with id: $id";
         return $User->delete();
     }
 }
@@ -82,10 +82,10 @@ class UserController {
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $UserController = new UserController();
-    // echo "user type is : ".$_POST['UserType'];
+    // //echo "user type is : ".$_POST['UserType'];
     switch ($_POST['action']) {
         case 'addUserAnduser':
-            echo "addUserAndUser";
+            //echo "addUserAndUser";
             $data = [
                 'UserType' => $_POST['UserType'],
                 'FirstName' => $_POST['FirstName'],
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
 
         case 'updateuser':
-            echo "updateUser";
+            //echo "updateUser";
             $data = [
                 'UserType' => $_POST['UserType'],
                 'UserID' => $_POST['UserID'],
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $UserController->updateUser($data);
             break;
         case 'deleteuser':
-            echo "case is deleteUser";
+            //echo "case is deleteUser";
             $UserController->deleteUser($_POST['UserID']);
             break;
     }

@@ -16,7 +16,7 @@ class VolunteerController {
     }
 
 public function getVolunteerNotifications($UserID){
-    // echo "UserID is in getVolunteerNotifications $UserID";
+    // //echo "UserID is in getVolunteerNotifications $UserID";
     $user = new User($UserID);
     $notifications =  $user->getAllNotifications();
     return $notifications;
@@ -30,7 +30,7 @@ public function getVolunteerNotifications($UserID){
     }
 
     public function getVolunteerbyId($id) {
-        // echo "getting volunteer by id in controller $id"; 
+        // //echo "getting volunteer by id in controller $id"; 
         return Volunteer::get_volunteer_by_id($id);
     }
 
@@ -61,18 +61,18 @@ public function getVolunteerNotifications($UserID){
 
     public function addLocation($area, $country, $city, $volunteerID, $userid, $locationID)
 {
-    echo "country is " . $country;
-    echo "city is " . $city;
-    echo "area is " . $area;
+    //echo "country is " . $country;
+    //echo "city is " . $city;
+    //echo "area is " . $area;
 
 
         $Volunteer = new Volunteer();
 
       
         $areaID = Location::getLocationID($area);
-        echo "AreaID is " . $areaID;
+        //echo "AreaID is " . $areaID;
         if ($areaID == null) {
-            echo "AreaID is null";
+            //echo "AreaID is null";
             
             $location = Location::create(Name:$country, ParentID:null);
             $countryID = $location->AddressID;
@@ -113,7 +113,7 @@ public function getVolunteerNotifications($UserID){
    
     public function addVolunteerHistory($VolunteerID, $volunteerOrganization, $volunteerStartDate, $volunteerEndDate, $EventName, $EventDescription, $EventCountry, $EventCity, $EventArea) {
         
-        echo "VolunteerID is " . $VolunteerID;
+        //echo "VolunteerID is " . $VolunteerID;
         
         $locationidCountry = Location::getLocationID($EventCountry); // parent id to city 
         $locationidCity = Location::getLocationID($EventCity); // parent id to area
@@ -141,9 +141,9 @@ public function getVolunteerNotifications($UserID){
 
     public function editVolunteerHistory($VolunteerHistoryID, $OrganizationName, $StartDate, $EndDate, $EventName, $EventDescription, $area, $city, $country) {
         $volunteerHistory = new VolunteerHistory($VolunteerHistoryID);
-        echo "country is " . $country;
-        echo "city is " . $city;
-        echo "area is " . $area;
+        //echo "country is " . $country;
+        //echo "city is " . $city;
+        //echo "area is " . $area;
       
 
         // // trim all the white spaces
@@ -170,7 +170,7 @@ public function getVolunteerNotifications($UserID){
         $volunteer = new Volunteer($VolunteerID);
         $skillTypes = explode(",", $skillTypes);
         // convert the skill types to an array of objects
-        // echo "skill types are " . $skillTypes;
+        // //echo "skill types are " . $skillTypes;
         for ($i = 0; $i < count($skillTypes); $i++) {
             $skillTypes[$i] = new SkillType(SkillTypeName: $skillTypes[$i]);
         }
@@ -196,7 +196,7 @@ public function getVolunteerNotifications($UserID){
     }
 
     public function updateNotificationSettings($UserID, $notificationTypes) {
-        echo "NotificationTypes in controller are " . $notificationTypes;
+        //echo "NotificationTypes in controller are " . $notificationTypes;
         $user = new User($UserID);
         $user->update_Notification_Types($notificationTypes);
     }   
@@ -233,12 +233,12 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
             curl_close($ch);
 
             if ($response === false) {
-                echo "Error fetching cities for $country.";
+                //echo "Error fetching cities for $country.";
                 continue;
             }
             $cities = json_decode($response, true);
             if ($cities === null) {
-                echo "Error decoding cities for $country. Invalid JSON response.";
+                //echo "Error decoding cities for $country. Invalid JSON response.";
                 continue;
             }
             $cityNames= array_map(function($state) {
@@ -270,21 +270,21 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
             
                     // Check for curl error
                     if ($response === false) {
-                        echo "Error fetching areas for $city: " . curl_error($ch);
+                        //echo "Error fetching areas for $city: " . curl_error($ch);
                         curl_close($ch);
                         continue;
                     }
                     curl_close($ch);
             
                     // Output the raw response for debugging
-                    echo "Raw response for $city: " . $response . "<br>";
+                    //echo "Raw response for $city: " . $response . "<br>";
             
                     // Decode the response into an associative array
                     $areas = json_decode($response, true);
             
                     // Check if the response is valid
                     if ($areas === null) {
-                        echo "Error decoding areas for $city. Invalid JSON response.";
+                        //echo "Error decoding areas for $city. Invalid JSON response.";
                         continue;
                     }
             
@@ -307,7 +307,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);  // Disable host verification
                             }
                         }
                     } else {
-                        echo "No areas found for $city.";
+                        //echo "No areas found for $city.";
                     }
                 }
             }
@@ -334,8 +334,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     $VolunteerController = new VolunteerController();
 
-    echo "received action";
-    echo "action is " . $_POST['action'];
+    //echo "received action";
+    //echo "action is " . $_POST['action'];
     switch ($_POST['action']) {
         case 'updateBadgeAssignment':
             $data = [
@@ -348,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
    
     
     case 'editProfileData':
-        echo "editProfileData";
+        //echo "editProfileData";
 
     
         $firstName = $_POST["FirstName"];
@@ -368,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     
 
     case "deleteLocation":
-        echo "action is deleteLocation";
+        //echo "action is deleteLocation";
 
         $id = $_POST['LocationID'];
         $VolunteerController->deleteLocation($id, $_POST['UserID']);
@@ -387,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     
     case 'addLocation':
-        echo "I HAVE RECEIVED ACTION ADD LOCATION";
+        //echo "I HAVE RECEIVED ACTION ADD LOCATION";
         $userid = $_POST['UserID'];
         $locationID = $_POST['LocationID'];
         $volunteerID = $_POST['VolunteerID'];
@@ -401,11 +401,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $country = $location['country'];   // Access country
 
                 // Do something with the area, city, and country
-                echo "Area: $area, City: $city, Country: $country\n";
+                //echo "Area: $area, City: $city, Country: $country\n";
             }
         } else {
-            echo "Locationn data is $locationsJson\n";
-            echo "Locations data is invalid!";
+            //echo "Locationn data is $locationsJson\n";
+            //echo "Locations data is invalid!";
         }
 
         $VolunteerController->addLocation($area,$country, $city, $volunteerID, $userid, $locationID);
@@ -413,17 +413,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     
     case 'addEmergencyContact':
-        echo "I HAVE RECEIVED ACTION ADD EMERGENCY CONTACT";
+        //echo "I HAVE RECEIVED ACTION ADD EMERGENCY CONTACT";
         $Name = $_POST['ContactName'];
         $volunteerID = $_POST['VolunteerID'];
         $PhoneNumber = $_POST['ContactPhone'];
-        echo "now calling addEmergencyContact from controller";
+        //echo "now calling addEmergencyContact from controller";
         $VolunteerController->addEmergencyContact($Name, $PhoneNumber, $volunteerID);
 
         break;
 
     case 'deleteContact':
-        echo "deleteContact";
+        //echo "deleteContact";
         $volunteerID = $_POST['VolunteerID'];
         $contactID = $_POST['ContactID'];
         $VolunteerController->deleteEmergencyContact($volunteerID, $contactID);
@@ -442,11 +442,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $country = $location['country'];   // Access country
 
                 // Do something with the area, city, and country
-                echo "Area: $area, City: $city, Country: $country\n";
+                //echo "Area: $area, City: $city, Country: $country\n";
             }
         } else {
-            echo "Locationn data is $locationsJson\n";
-            echo "Locations data is invalid!";
+            //echo "Locationn data is $locationsJson\n";
+            //echo "Locations data is invalid!";
         }
         $VolunteerController->addVolunteerHistory( $_POST['VolunteerID'], $_POST['volunteerOrganization'],
          $_POST['volunteerStartDate'], $_POST['volunteerEndDate'], $_POST['EventName'], $_POST['EventDescription'], 
@@ -473,21 +473,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 
     case 'deleteSkill':
-        echo "deleteSkill";
+        //echo "deleteSkill";
         $volunteerID = $_POST['VolunteerID'];
         $skillID = $_POST['SkillID'];
         $VolunteerController->deleteSkill($volunteerID, $skillID);
         break;
 
     case  'updateNotificationSettings':
-        echo "updateNotificationSettings";
+        //echo "updateNotificationSettings";
         $UserID = $_POST['UserID'];
         $notificationTypes = $_POST['notificationTypes'];
         $VolunteerController->updateNotificationSettings($UserID, $notificationTypes);
         break;
 
     case 'updateEmergencyContact':
-        echo "updateEmergencyContact";
+        //echo "updateEmergencyContact";
         $VolunteerController->updateEmergencyContact($_POST['VolunteerID'], $_POST['ContactID'], $_POST['Name'], $_POST['Phone']);
         break;
     }

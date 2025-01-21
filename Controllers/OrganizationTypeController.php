@@ -14,7 +14,7 @@ class OrganizationTypeController {
     
     public function updateOrganizationType($data) {
 
-        echo "now updating OrganizationType with id: $data[OrganizationTypeID]"; 
+        //echo "now updating OrganizationType with id: $data[OrganizationTypeID]"; 
         
         $OrganizationType = new OrganizationType($data['OrganizationTypeID']);
         $OrganizationType->update($data['OrganizationTypeName']);
@@ -28,7 +28,7 @@ class OrganizationTypeController {
 
     public function deleteOrganizationType($id) {
         $OrganizationType = new OrganizationType($id);
-        echo "now deleting OrganizationType with id: $id";
+        //echo "now deleting OrganizationType with id: $id";
         return $OrganizationType->delete();
     }
 }
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $OrganizationTypeController = new OrganizationTypeController();
     switch ($_POST['action']) {
         case 'addOrganizationType':
-            echo "addOrganizationType";
+            //echo "addOrganizationType";
             $data = [
                 'OrganizationTypeName' => $_POST['OrganizationTypeName'],
             ];
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
 
         case 'updateOrganizationType':
-            echo "updateOrganizationType";
+            //echo "updateOrganizationType";
             $data = [
                 'OrganizationTypeName' => $_POST['OrganizationTypeName'],
                 'OrganizationTypeID' => $_POST['OrganizationTypeID']
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $OrganizationTypeController->updateOrganizationType($data);
             break;
         case 'deleteOrganizationType':
-            echo "case is deleteOrganizationType";
+            //echo "case is deleteOrganizationType";
             $OrganizationTypeController->deleteOrganizationType($_POST['OrganizationTypeID']);
             break;
     }

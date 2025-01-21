@@ -29,7 +29,7 @@ class LoginController
      
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? null;
-            echo "action is $action";  
+            //echo "action is $action";  
             switch ($action) {
                 case 'login':
                     $this->handleLogin();
@@ -135,7 +135,7 @@ class LoginController
 
 $controller = new LoginController();
 $controller->handleRequest();
-echo "$controller->Message";
+//echo "$controller->Message";
 require_once '../Views/LoginView.php';
 ?>
 
